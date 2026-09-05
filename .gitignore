@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.angular/
+
+backend/.env
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+shared/index.js
+shared/index.d.ts
+
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+npm-debug.log*

@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ClipboardItem {
+  id        String   @id @default(uuid())
+  content   String
+  type      String   @default("text")
+  createdAt DateTime @default(now())
+}
+
+model FileItem {
+  id           String   @id @default(uuid())
+  originalName String
+  fileName     String   @unique
+  mimeType     String
+  size         Int
+  createdAt    DateTime @default(now())
+}

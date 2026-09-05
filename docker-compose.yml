@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: local-drop-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: localdrop_user
+      POSTGRES_PASSWORD: supersecretpassword
+      POSTGRES_DB: localdrop_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,0 +1,78 @@
+<main class="dashboard-container">
+  
+  <section class="column">
+    <h2 class="section-title">Буфер обмена</h2>
+    
+    <div class="input-section">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Вставьте текст или ссылку</mat-label>
+        <textarea matInput [(ngModel)]="newContent" rows="3" (keydown.control.enter)="send()"></textarea>
+      </mat-form-field>
+      <div class="actions-row">
+        <button mat-fab extended color="primary" (click)="send()" [disabled]="!newContent.trim()">
+          <mat-icon>send</mat-icon> Отправить
+        </button>
+      </div>
+    </div>
+
+    <div class="items-grid">
+      @for (item of clipboardService.items(); track item.id) {
+        <mat-card class="clip-card">
+          <mat-card-content class="clip-content">{{ item.content }}</mat-card-content>
+          <div class="card-footer">
+            <span class="date-text">{{ item.createdAt | date:'dd MMM, HH:mm' }}</span>
+            <div class="card-actions">
+              <button mat-icon-button color="primary" (click)="copyToClipboard(item.content)">
+                <mat-icon>content_copy</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="clipboardService.deleteItem(item.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </mat-card>
+      }
+    </div>
+  </section>
+
+  <section class="column">
+    <h2 class="section-title">Файлы</h2>
+
+    <div class="dropzone" appDragDrop (fileDropped)="onFileDropped($event)" (click)="fileInput.click()">
+      <input type="file" #fileInput (change)="onFileSelected($event)" hidden>
+      <mat-icon class="drop-icon">cloud_upload</mat-icon>
+      <h3>Перетащите файл сюда</h3>
+      <p>или нажмите для выбора</p>
+      
+      @if (filesService.uploadProgress() !== null) {
+        <div class="progress-container" (click)="$event.stopPropagation()">
+          <span>Загрузка: {{ filesService.uploadProgress() }}%</span>
+          <mat-progress-bar mode="determinate" [value]="filesService.uploadProgress()"></mat-progress-bar>
+        </div>
+      }
+    </div>
+
+    <div class="items-grid">
+      @for (file of filesService.files(); track file.id) {
+        <mat-card class="file-card">
+          <div class="file-info">
+            <mat-icon color="primary">insert_drive_file</mat-icon>
+            <div class="file-details">
+              <span class="file-name" [title]="file.originalName">{{ file.originalName }}</span>
+              <span class="file-meta">{{ formatBytes(file.size) }} • {{ file.createdAt | date:'dd MMM, HH:mm' }}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a mat-icon-button color="primary" [href]="'http://localhost:3000/files/download/' + file.fileName" target="_blank" download>
+              <mat-icon>download</mat-icon>
+            </a>
+            <button mat-icon-button color="warn" (click)="filesService.deleteFile(file.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </mat-card>
+      }
+    </div>
+  </section>
+
+</main>
