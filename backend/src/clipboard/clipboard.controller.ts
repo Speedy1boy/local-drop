@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards } from '@nestjs/common';
 import { ClipboardService } from './clipboard.service.js';
 import { ClipboardGateway } from './clipboard.gateway.js';
 import { CreateClipboardDto } from './dto/create-clipboard.dto.js';
+import { AuthGuard } from '../auth/auth.guard.js';
 
+@UseGuards(AuthGuard)
 @Controller('clipboard')
 export class ClipboardController {
   constructor(

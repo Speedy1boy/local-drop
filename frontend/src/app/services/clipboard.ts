@@ -1,28 +1,29 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { io, Socket } from 'socket.io-client';
-
-export interface ClipboardItem {
-  id: string;
-  content: string;
-  type: string;
-  createdAt: string;
-}
+import { ClipboardItem } from '@local-drop/shared';
+import { API_URL } from '../config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClipboardService {
+  private http = inject(HttpClient);
   private socket: Socket;
   
   items = signal<ClipboardItem[]>([]);
 
   constructor() {
-    this.socket = io('http://localhost:3000');
-
+    this.socket = io(API_URL);
     this.fetchInitialData();
 
     this.socket.on('clipboardUpdated', (newItem: ClipboardItem) => {
-      this.items.update(current => [newItem, ...current]);
+      this.items.update(current => {
+        if (current.find(item => item.id === newItem.id)) {
+          return current;
+        }
+        return [newItem, ...current];
+      });
     });
 
     this.socket.on('clipboardDeleted', (deletedId: string) => {
@@ -31,20 +32,17 @@ export class ClipboardService {
   }
 
   sendText(content: string) {
-    this.socket.emit('newClipboardItem', { content, type: 'text' });
+    this.http.post<ClipboardItem>(`${API_URL}/clipboard`, { content, type: 'text' }).subscribe();
   }
 
   deleteItem(id: string) {
-    fetch(`http://localhost:3000/clipboard/${id}`, { method: 'DELETE' });
+    this.http.delete(`${API_URL}/clipboard/${id}`).subscribe();
   }
 
-  private async fetchInitialData() {
-    try {
-      const response = await fetch('http://localhost:3000/clipboard');
-      const data = await response.json();
-      this.items.set(data);
-    } catch (error) {
-      console.error('Ошибка загрузки данных:', error);
-    }
+  private fetchInitialData() {
+    this.http.get<ClipboardItem[]>(`${API_URL}/clipboard`).subscribe({
+      next: (data) => this.items.set(data),
+      error: (err) => console.error(err)
+    });
   }
 }

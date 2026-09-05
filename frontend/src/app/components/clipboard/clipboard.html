@@ -1,0 +1,36 @@
+<div class="clipboard-view">
+  <div class="input-section">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Вставьте текст или ссылку</mat-label>
+      <textarea 
+        matInput 
+        [(ngModel)]="newContent" 
+        (keydown.control.enter)="send()">
+      </textarea>
+    </mat-form-field>
+    <div class="actions-row">
+      <button mat-fab extended color="primary" (click)="send()" [disabled]="!newContent.trim()">
+        <mat-icon>send</mat-icon> Отправить
+      </button>
+    </div>
+  </div>
+
+  <div class="list-grid">
+    @for (item of clipboardService.items(); track item.id) {
+      <mat-card class="clip-card">
+        <mat-card-content class="clip-content">{{ item.content }}</mat-card-content>
+        <div class="card-footer">
+          <span class="date-text">{{ item.createdAt | date:'dd MMM, HH:mm' }}</span>
+          <div class="card-actions">
+            <button mat-icon-button color="primary" (click)="copyToClipboard(item.content)">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteItem(item.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    }
+  </div>
+</div>

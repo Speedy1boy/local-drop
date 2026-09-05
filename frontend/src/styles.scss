@@ -1,9 +1,5 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 html {
   height: 100%;
@@ -20,20 +16,164 @@ html {
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
   color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
   background-color: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
   margin: 0;
   height: 100%;
 }
-/* You can add global styles to this file, and also import other style files */
+
+body.dark-theme {
+  color-scheme: dark;
+}
+
+*, *::before, *::after {
+  transition-duration: 0.3s !important;
+  transition-timing-function: ease-in-out !important;
+  transition-property: background-color, color, border-color, border-width, fill, stroke, opacity, box-shadow !important;
+}
+
+.mat-drawer {
+  transition-property: transform, background-color, color, border-color, box-shadow !important;
+}
+
+.mat-drawer-content {
+  transition-property: margin-left, margin-right, background-color, color !important;
+}
+
+.mat-mdc-card, 
+.dropzone {
+  transition-property: transform, box-shadow, background-color, color, border-color !important;
+}
+
+.drop-icon {
+  transition: transform 0.3s ease, color 0.3s ease-in-out !important;
+}
+
+.mat-mdc-toolbar, 
+.mat-toolbar-row,
+.mat-mdc-toolbar-single-row,
+.top-toolbar {
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border-bottom-color 0.3s ease-in-out !important;
+}
+
+.mat-mdc-list-item,
+.mat-mdc-list-item-title,
+.mat-mdc-list-item-icon {
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out !important;
+}
+
+.mdc-button,
+.mdc-fab,
+.mdc-icon-button {
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, box-shadow 0.3s ease-in-out !important;
+}
+
+.mdc-button__label,
+.mdc-fab__label,
+.mat-mdc-button-touch-target,
+.mdc-button__ripple {
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out !important;
+}
+
+.mat-mdc-form-field-infix,
+.mdc-notched-outline,
+.mdc-notched-outline__leading,
+.mdc-notched-outline__notch,
+.mdc-notched-outline__trailing,
+.mdc-notched-outline__leading::before,
+.mdc-notched-outline__leading::after,
+.mdc-notched-outline__notch::before,
+.mdc-notched-outline__notch::after,
+.mdc-notched-outline__trailing::before,
+.mdc-notched-outline__trailing::after,
+.mat-mdc-form-field-label-wrapper,
+.mdc-floating-label,
+input.mat-mdc-input-element,
+textarea.mat-mdc-input-element {
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+::ng-deep .fullscreen-dialog {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  
+  overflow: hidden !important;
+
+  .mat-mdc-dialog-container {
+    overflow: hidden !important;
+  }
+}
+
+::ng-deep .dark-backdrop {
+  background: rgba(0, 0, 0, 0.95) !important;
+}
+
+html.cdk-global-scrollblock,
+body.cdk-global-scrollblock {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+}
+
+html.cdk-global-scrollblock::-webkit-scrollbar,
+body.cdk-global-scrollblock::-webkit-scrollbar {
+  display: none !important;
+}
+
+::ng-deep .fullscreen-dialog {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+}
+
+::ng-deep .fullscreen-dialog::-webkit-scrollbar {
+  display: none !important;
+}
+
+.fullscreen-dialog {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+}
+
+.fullscreen-dialog::-webkit-scrollbar {
+  display: none !important;
+}
+
+.fullscreen-dialog .mat-mdc-dialog-container,
+.fullscreen-dialog .mdc-dialog__surface {
+  border-radius: 0 !important;
+  background-color: #121212 !important; 
+  box-shadow: none !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.dark-backdrop {
+  background: rgba(0, 0, 0, 0.95) !important;
+}
+
+html.cdk-global-scrollblock,
+body.cdk-global-scrollblock {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+}
+
+html.cdk-global-scrollblock::-webkit-scrollbar,
+body.cdk-global-scrollblock::-webkit-scrollbar {
+  display: none !important;
+}

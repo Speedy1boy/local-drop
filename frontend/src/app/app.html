@@ -1,78 +1,80 @@
-<main class="dashboard-container">
-  
-  <section class="column">
-    <h2 class="section-title">Буфер обмена</h2>
+@if (!authService.isAuthenticated()) {
+  <app-login />
+} @else {
+  <mat-sidenav-container class="app-container" autosize="true">
     
-    <div class="input-section">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Вставьте текст или ссылку</mat-label>
-        <textarea matInput [(ngModel)]="newContent" rows="3" (keydown.control.enter)="send()"></textarea>
-      </mat-form-field>
-      <div class="actions-row">
-        <button mat-fab extended color="primary" (click)="send()" [disabled]="!newContent.trim()">
-          <mat-icon>send</mat-icon> Отправить
-        </button>
-      </div>
-    </div>
+    <mat-sidenav 
+      [position]="actualSidenavPosition()"
+      [fixedInViewport]="true"
+      [mode]="isMobile() ? 'over' : 'side'" 
+      [opened]="isSidenavOpen()"
+      (closed)="isSidenavOpen.set(false)"
+      class="sidenav">
 
-    <div class="items-grid">
-      @for (item of clipboardService.items(); track item.id) {
-        <mat-card class="clip-card">
-          <mat-card-content class="clip-content">{{ item.content }}</mat-card-content>
-          <div class="card-footer">
-            <span class="date-text">{{ item.createdAt | date:'dd MMM, HH:mm' }}</span>
-            <div class="card-actions">
-              <button mat-icon-button color="primary" (click)="copyToClipboard(item.content)">
-                <mat-icon>content_copy</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="clipboardService.deleteItem(item.id)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          </div>
-        </mat-card>
-      }
-    </div>
-  </section>
-
-  <section class="column">
-    <h2 class="section-title">Файлы</h2>
-
-    <div class="dropzone" appDragDrop (fileDropped)="onFileDropped($event)" (click)="fileInput.click()">
-      <input type="file" #fileInput (change)="onFileSelected($event)" hidden>
-      <mat-icon class="drop-icon">cloud_upload</mat-icon>
-      <h3>Перетащите файл сюда</h3>
-      <p>или нажмите для выбора</p>
-      
-      @if (filesService.uploadProgress() !== null) {
-        <div class="progress-container" (click)="$event.stopPropagation()">
-          <span>Загрузка: {{ filesService.uploadProgress() }}%</span>
-          <mat-progress-bar mode="determinate" [value]="filesService.uploadProgress()"></mat-progress-bar>
+      <div class="logo-container">
+        <div class="logo-text">
+          <mat-icon color="primary">cloud_sync</mat-icon>
+          <h2>Local Drop</h2>
         </div>
-      }
-    </div>
+        
+        @if (!isMobile()) {
+          <button mat-icon-button (click)="togglePosition()" title="Сменить сторону меню" class="sidenav-action-btn">
+            <mat-icon>swap_horiz</mat-icon>
+          </button>
+        }
+      </div>
 
-    <div class="items-grid">
-      @for (file of filesService.files(); track file.id) {
-        <mat-card class="file-card">
-          <div class="file-info">
-            <mat-icon color="primary">insert_drive_file</mat-icon>
-            <div class="file-details">
-              <span class="file-name" [title]="file.originalName">{{ file.originalName }}</span>
-              <span class="file-meta">{{ formatBytes(file.size) }} • {{ file.createdAt | date:'dd MMM, HH:mm' }}</span>
-            </div>
-          </div>
-          <div class="card-actions">
-            <a mat-icon-button color="primary" [href]="'http://localhost:3000/files/download/' + file.fileName" target="_blank" download>
-              <mat-icon>download</mat-icon>
-            </a>
-            <button mat-icon-button color="warn" (click)="filesService.deleteFile(file.id)">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </div>
-        </mat-card>
-      }
-    </div>
-  </section>
+      <mat-nav-list>
+        <a mat-list-item [class.active]="activeView === 'clipboard'" (click)="selectView('clipboard')">
+          <mat-icon matListItemIcon>content_paste</mat-icon>
+          <div matListItemTitle>Буфер обмена</div>
+        </a>
+        <a mat-list-item [class.active]="activeView === 'files'" (click)="selectView('files')">
+          <mat-icon matListItemIcon>folder</mat-icon>
+          <div matListItemTitle>Файлы</div>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
 
-</main>
+    <mat-sidenav-content class="main-content">
+      <mat-toolbar class="top-toolbar">
+        
+        @if (isMobile() || actualSidenavPosition() === 'start') {
+          <button mat-icon-button (click)="toggleSidenav()" class="menu-btn edge-left" [class.open]="isSidenavOpen() && !isMobile()">
+            <mat-icon>{{ isSidenavOpen() && !isMobile() ? 'menu_open' : 'menu' }}</mat-icon>
+          </button>
+        }
+
+        <span class="toolbar-title">{{ activeView === 'clipboard' ? 'Буфер обмена' : 'Хранилище файлов' }}</span>
+        
+        <span class="spacer"></span>
+        
+        <button mat-icon-button (click)="themeService.toggle()">
+          <mat-icon>{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="authService.logout()" title="Выйти">
+          <mat-icon>logout</mat-icon>
+        </button>
+
+        @if (!isMobile() && actualSidenavPosition() === 'end') {
+          <button mat-icon-button (click)="toggleSidenav()" title="Свернуть меню" class="menu-btn edge-right flip-icon">
+            <mat-icon>menu_open</mat-icon>
+          </button>
+        }
+      </mat-toolbar>
+
+      <div class="view-container">
+        @if (activeView === 'clipboard') {
+          <div @pageAnimation>
+            <app-clipboard />
+          </div>
+        }
+        @if (activeView === 'files') {
+          <div @pageAnimation>
+            <app-files />
+          </div>
+        }
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+}

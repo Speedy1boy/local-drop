@@ -1,64 +1,107 @@
-import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
+import { Component, inject, signal, computed } from '@angular/core';
+import { trigger, style, animate, transition } from '@angular/animations';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { ClipboardService } from './services/clipboard';
-import { FilesService } from './services/files';
-import { DragDropDirective } from './directives/drag-drop';
+import { MatButtonModule } from '@angular/material/button';
+import { AuthService } from './services/auth';
+import { ThemeService } from './services/theme';
+import { LoginComponent } from './components/login/login';
+import { ClipboardComponent } from './components/clipboard/clipboard';
+import { FilesComponent } from './components/files/files';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
-    FormsModule,
-    DatePipe,
-    MatInputModule,
-    MatButtonModule,
+    MatSidenavModule,
+    MatToolbarModule,
+    MatListModule,
     MatIconModule,
-    MatCardModule,
-    MatProgressBarModule,
-    DragDropDirective
+    MatButtonModule,
+    LoginComponent,
+    ClipboardComponent,
+    FilesComponent
   ],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
+  animations: [
+    trigger('pageAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(15px)' }),
+        animate('400ms cubic-bezier(0.2, 0, 0, 1)', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ])
+  ]
 })
 export class App {
-  clipboardService = inject(ClipboardService);
-  filesService = inject(FilesService);
-  newContent = '';
+  authService = inject(AuthService);
+  themeService = inject(ThemeService);
+  private breakpointObserver = inject(BreakpointObserver);
 
-  send() {
-    if (this.newContent.trim()) {
-      this.clipboardService.sendText(this.newContent);
-      this.newContent = '';
+  activeView: 'clipboard' | 'files' = 'clipboard';
+  
+  isMobile = signal<boolean>(false);
+  isSidenavOpen = signal<boolean>(true);
+  
+  savedSidenavPosition = signal<'start' | 'end'>('start');
+
+  actualSidenavPosition = computed(() => {
+    if (this.isMobile()) {
+      return 'start';
     }
-  }
+    return this.savedSidenavPosition();
+  });
 
-  copyToClipboard(text: string) {
-    navigator.clipboard.writeText(text);
-  }
-
-  onFileDropped(file: File) {
-    this.filesService.uploadFile(file);
-  }
-
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.filesService.uploadFile(input.files[0]);
+  constructor() {
+    const savedPos = localStorage.getItem('localdrop_sidenav_pos');
+    if (savedPos === 'start' || savedPos === 'end') {
+      this.savedSidenavPosition.set(savedPos);
     }
+
+    const savedView = localStorage.getItem('localdrop_active_view');
+    if (savedView === 'clipboard' || savedView === 'files') {
+      this.activeView = savedView;
+    }
+
+    const isTouchDevice = () => window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+
+    this.breakpointObserver
+      .observe([
+        '(max-width: 767px)', 
+        '(max-width: 950px) and (orientation: landscape)'
+      ])
+      .pipe(takeUntilDestroyed())
+      .subscribe(result => {
+        const isMobileSize = result.matches;
+        const isHorizontalPhone = isTouchDevice() && window.innerHeight < 500;
+        
+        const mobile = isMobileSize || isHorizontalPhone;
+        
+        this.isMobile.set(mobile);
+        this.isSidenavOpen.set(!mobile);
+      });
   }
 
-  formatBytes(bytes: number, decimals = 2) {
-    if (!+bytes) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  toggleSidenav() {
+    this.isSidenavOpen.update(v => !v);
+  }
+
+  togglePosition() {
+    const newPos = this.savedSidenavPosition() === 'start' ? 'end' : 'start';
+    this.savedSidenavPosition.set(newPos);
+    localStorage.setItem('localdrop_sidenav_pos', newPos);
+  }
+
+  selectView(view: 'clipboard' | 'files') {
+    this.activeView = view;
+    localStorage.setItem('localdrop_active_view', view);
+    
+    if (this.isMobile()) {
+      this.isSidenavOpen.set(false);
+    }
   }
 }

@@ -1,0 +1,70 @@
+<div class="files-view">
+  <div class="dropzone" appDragDrop (fileDropped)="onFileDropped($event)" (click)="fileInput.click()">
+    <input type="file" #fileInput (change)="onFileSelected($event)" hidden>
+    <mat-icon class="drop-icon">cloud_upload</mat-icon>
+    <h3>Перетащите файл сюда</h3>
+    <p>или нажмите для выбора</p>
+    
+    @if (filesService.uploadProgress() !== null) {
+      <div class="progress-container" (click)="$event.stopPropagation()">
+        <span>Загрузка: {{ filesService.uploadProgress() }}%</span>
+        <mat-progress-bar mode="determinate" [value]="filesService.uploadProgress()"></mat-progress-bar>
+      </div>
+    }
+  </div>
+
+  <div class="files-gallery">
+    @for (file of filesService.files(); track file.id) {
+      
+      <mat-card 
+        class="gallery-card" 
+        (click)="openViewer(file)"
+        (mouseenter)="onGifHover(file.id, true)" 
+        (mouseleave)="onGifHover(file.id, false)">
+        
+        <div class="preview-area">
+          @if (isImage(file.mimeType)) {
+            <img [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview">
+          } 
+          @else if (isGif(file.mimeType)) {
+            @if (isGifPlaying(file.id)) {
+              <img [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview">
+            } @else {
+              <div class="doc-preview gif-paused">
+                <mat-icon>gif</mat-icon>
+                <span class="ext-label">Наведите для просмотра</span>
+              </div>
+            }
+          } 
+          @else if (isVideo(file.mimeType)) {
+            <video [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview" preload="metadata" muted></video>
+            <mat-icon class="play-overlay">play_circle_outline</mat-icon>
+          } 
+          @else {
+            <div class="doc-preview">
+              <mat-icon>insert_drive_file</mat-icon>
+              <span class="ext-label">{{ file.originalName.split('.').pop() }}</span>
+            </div>
+          }
+        </div>
+        
+        <div class="file-info-bottom">
+          <div class="file-text">
+            <span class="file-name" [title]="file.originalName">{{ file.originalName }}</span>
+            <span class="file-size">{{ formatBytes(file.size) }}</span>
+          </div>
+          
+          <div class="file-actions">
+            <button mat-icon-button color="primary" (click)="onDownload($event, file)">
+              <mat-icon>download</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="onDelete($event, file.id, file.originalName)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+
+      </mat-card>
+    }
+  </div>
+</div>

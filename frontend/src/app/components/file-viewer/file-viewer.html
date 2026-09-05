@@ -1,0 +1,31 @@
+<div class="fullscreen-container">
+  <div class="top-bar">
+    <h2 [title]="data.file.originalName">{{ data.file.originalName }}</h2>
+    <div class="actions">
+      <button mat-icon-button class="action-btn" (click)="onDownload()">
+        <mat-icon>download</mat-icon>
+      </button>
+      <button mat-icon-button class="action-btn" (click)="onDelete()">
+        <mat-icon color="warn">delete</mat-icon>
+      </button>
+      <button mat-icon-button class="action-btn close-btn" mat-dialog-close>
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="media-content">
+    @if (isImage) {
+      <img [src]="url" alt="preview">
+    } @else if (isVideo) {
+      <video controls [src]="url" autoplay></video>
+    } @else if (isAudio) {
+      <audio controls [src]="url" autoplay></audio>
+    } @else {
+      <div class="doc-placeholder">
+        <mat-icon>insert_drive_file</mat-icon>
+        <p>Предпросмотр недоступен</p>
+      </div>
+    }
+  </div>
+</div>

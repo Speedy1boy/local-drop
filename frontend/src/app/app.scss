@@ -1,152 +1,108 @@
-.dashboard-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 32px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-  }
+.app-container {
+  min-height: 100vh;
+  overflow: visible;
 }
 
-.section-title {
-  font-size: 24px;
-  font-weight: 500;
-  margin-bottom: 24px;
-  color: var(--mat-sys-on-surface);
+::ng-deep .mat-drawer-container,
+::ng-deep .mat-drawer-content {
+  overflow: visible !important;
 }
 
-.column {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.input-section {
-  background-color: var(--mat-sys-surface-container-low);
-  padding: 24px;
-  border-radius: 24px;
-}
-
-.full-width {
-  width: 100%;
-}
-
-.actions-row {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.items-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.clip-card {
+.sidenav {
+  width: 260px;
   background-color: var(--mat-sys-surface-container);
-  border-radius: 16px;
-  box-shadow: none;
-  border: 1px solid var(--mat-sys-outline-variant);
+  border-color: var(--mat-sys-outline-variant);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.clip-content {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  font-size: 16px;
-  padding: 24px 24px 8px 24px;
-}
-
-.card-footer {
+.logo-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px 8px 24px;
+  padding: 16px 16px 16px 24px;
 }
 
-.date-text, .file-meta {
-  font-size: 12px;
+.logo-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+  h2 { margin: 0; font-size: 20px; font-weight: 600; color: var(--mat-sys-on-surface); }
+  mat-icon { font-size: 28px; width: 28px; height: 28px; }
+}
+
+.sidenav-action-btn {
   color: var(--mat-sys-on-surface-variant);
 }
 
-.card-actions {
-  display: flex;
-  gap: 8px;
+mat-nav-list {
+  padding: 8px 12px !important;
 }
 
-.dropzone {
-  background-color: var(--mat-sys-surface-container-low);
-  border: 2px dashed var(--mat-sys-outline);
-  border-radius: 24px;
-  padding: 48px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  &:hover, &.fileover {
-    background-color: var(--mat-sys-surface-container-highest);
-    border-color: var(--mat-sys-primary);
-  }
-
-  .drop-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-    color: var(--mat-sys-primary);
-    margin-bottom: 16px;
-  }
-
-  h3 { margin: 0 0 8px 0; }
-  p { margin: 0; color: var(--mat-sys-on-surface-variant); }
+mat-nav-list a[mat-list-item] {
+  border-radius: 24px !important;
+  margin-bottom: 4px;
 }
 
-.progress-container {
-  width: 100%;
-  margin-top: 24px;
-  text-align: left;
-  
-  span {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 500;
-  }
+.active {
+  background-color: var(--mat-sys-secondary-container) !important;
+  color: var(--mat-sys-on-secondary-container) !important;
 }
 
-.file-card {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px;
-  background-color: var(--mat-sys-surface-container);
-  border-radius: 16px;
-  box-shadow: none;
-  border: 1px solid var(--mat-sys-outline-variant);
+.top-toolbar {
+  background-color: var(--mat-sys-surface);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  overflow: hidden;
+.menu-btn {
+  margin: 0 8px;
 }
 
-.file-details {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+.flip-icon {
+  transform: scaleX(-1);
+  margin-left: 8px;
+  margin-right: -8px;
 }
 
-.file-name {
+.toolbar-title {
   font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 300px;
+  font-size: 18px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.view-container {
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  @media (min-width: 1920px) {
+    max-width: 1800px;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 2400px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+}
+
+.edge-left {
+  margin-left: -8px !important;
+  margin-right: 8px !important;
+}
+
+.edge-right {
+  margin-right: -8px !important;
+  margin-left: 8px !important;
 }

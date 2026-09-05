@@ -13,6 +13,9 @@ import { diskStorage } from 'multer';
 import express from 'express';
 import { extname, join } from 'path';
 import { FilesService } from './files.service.js';
+import { FilesGateway } from './files.gateway.js';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard.js';
 
 const storageConfig = diskStorage({
   destination: './uploads',
@@ -25,17 +28,24 @@ const storageConfig = diskStorage({
 
 @Controller('files')
 export class FilesController {
-  constructor(private readonly filesService: FilesService) {}
+  constructor(
+    private readonly filesService: FilesService,
+    private readonly filesGateway: FilesGateway
+  ) {}
 
+  @UseGuards(AuthGuard)
   @Get()
   getAllFiles() {
     return this.filesService.findAll();
   }
 
+  @UseGuards(AuthGuard)
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', { storage: storageConfig }))
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
-    return this.filesService.saveMetadata(file);
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    const savedFile = await this.filesService.saveMetadata(file);
+    this.filesGateway.broadcastNewFile(savedFile);
+    return savedFile;
   }
 
   @Get('download/:fileName')
@@ -44,8 +54,11 @@ export class FilesController {
     res.download(filePath);
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  removeFile(@Param('id') id: string) {
-    return this.filesService.remove(id);
+  async removeFile(@Param('id') id: string) {
+    await this.filesService.remove(id);
+    this.filesGateway.broadcastDeletedFile(id);
+    return { success: true };
   }
 }

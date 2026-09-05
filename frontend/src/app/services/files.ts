@@ -1,30 +1,34 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpEventType, HttpRequest } from '@angular/common/http';
-
-export interface FileItem {
-  id: string;
-  originalName: string;
-  fileName: string;
-  mimeType: string;
-  size: number;
-  createdAt: string;
-}
+import { FileItem } from '@local-drop/shared';
+import { io, Socket } from 'socket.io-client';
+import { API_URL } from '../config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FilesService {
   private http = inject(HttpClient);
+  private socket: Socket;
   
   files = signal<FileItem[]>([]);
   uploadProgress = signal<number | null>(null);
 
   constructor() {
+    this.socket = io(API_URL);
     this.loadFiles();
+
+    this.socket.on('fileUploaded', (newFile: FileItem) => {
+      this.files.update(current => [newFile, ...current]);
+    });
+
+    this.socket.on('fileDeleted', (deletedId: string) => {
+      this.files.update(current => current.filter(f => f.id !== deletedId));
+    });
   }
 
   loadFiles() {
-    this.http.get<FileItem[]>('http://localhost:3000/files').subscribe({
+    this.http.get<FileItem[]>(`${API_URL}/files`).subscribe({
       next: (data) => this.files.set(data),
       error: (err) => console.error(err)
     });
@@ -34,7 +38,7 @@ export class FilesService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const req = new HttpRequest('POST', 'http://localhost:3000/files/upload', formData, {
+    const req = new HttpRequest('POST', `${API_URL}/files/upload`, formData, {
       reportProgress: true
     });
 
@@ -45,7 +49,6 @@ export class FilesService {
           this.uploadProgress.set(percentDone);
         } else if (event.type === HttpEventType.Response) {
           this.uploadProgress.set(null);
-          this.files.update(current => [event.body, ...current]);
         }
       },
       error: () => this.uploadProgress.set(null)
@@ -53,8 +56,6 @@ export class FilesService {
   }
 
   deleteFile(id: string) {
-    this.http.delete(`http://localhost:3000/files/${id}`).subscribe(() => {
-      this.files.update(current => current.filter(f => f.id !== id));
-    });
+    this.http.delete(`${API_URL}/files/${id}`).subscribe();
   }
 }
