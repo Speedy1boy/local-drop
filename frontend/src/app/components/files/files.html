@@ -1,8 +1,11 @@
 <div class="files-view">
   
   <div class="controls-bar">
-    <div class="breadcrumbs" #breadcrumbsContainer>
-      <span class="crumb" (click)="goToBreadcrumb(-1)" [class.active]="breadcrumbs().length === 0"
+    <div class="breadcrumbs" #breadcrumbsContainer (scroll)="onBreadcrumbsScroll($event)">
+      <span class="crumb root-crumb" 
+            [class.is-scrolled]="isBreadcrumbsScrolled()"
+            (click)="goToBreadcrumb(-1)" 
+            [class.active]="breadcrumbs().length === 0"
             (dragover)="onDragOverZone($event, null)" (dragleave)="onDragLeaveZone()" (drop)="onDrop($event, null)"
             [class.drag-over-crumb]="hoveredDropZoneId() === 'root'">Главная</span>
       
@@ -50,10 +53,31 @@
     }
   </div>
 
+  <div class="search-filter-bar">
+    <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput placeholder="Поиск в текущей папке..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)">
+      @if (searchQuery()) {
+        <button mat-icon-button matSuffix (click)="searchQuery.set('')">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+
+    <div class="filter-chips">
+      <button mat-button [class.active-chip]="activeFilter() === 'all'" (click)="activeFilter.set('all')">Все</button>
+      <button mat-button [class.active-chip]="activeFilter() === 'image'" (click)="activeFilter.set('image')">Фото</button>
+      <button mat-button [class.active-chip]="activeFilter() === 'video'" (click)="activeFilter.set('video')">Видео</button>
+      <button mat-button [class.active-chip]="activeFilter() === 'doc'" (click)="activeFilter.set('doc')">Документы</button>
+    </div>
+  </div>
+
   <div class="files-gallery">
 
-    @for (folder of filesService.folders(); track folder.id) {
-      <mat-card class="gallery-card folder-card" (dblclick)="openFolder(folder)"
+    @for (folder of filteredFolders(); track folder.id) {
+      <mat-card class="gallery-card folder-card" 
+                [@itemAnim] 
+                (click)="onFolderClick(folder)"
                 draggable="true" 
                 (dragstart)="onDragStart($event, folder.id, 'folder')" 
                 (dragend)="onDragEnd()"
@@ -69,7 +93,11 @@
           <div class="file-text">
             <span class="file-name" [title]="folder.name">{{ folder.name }}</span>
           </div>
-          <div class="file-actions">
+           <div class="file-actions">
+            <button mat-icon-button color="primary" (click)="onRenameFolder($event, folder)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            
             <button mat-icon-button color="warn" (click)="onDeleteFolder($event, folder.id, folder.name)">
               <mat-icon>delete</mat-icon>
             </button>
@@ -78,8 +106,10 @@
       </mat-card>
     }
 
-    @for (file of filesService.files(); track file.id) {
-      <mat-card class="gallery-card" (dblclick)="openViewer(file)" 
+    @for (file of filteredFiles(); track file.id) {
+      <mat-card class="gallery-card" 
+                [@itemAnim] 
+                (click)="openViewer(file)" 
                 draggable="true" 
                 (dragstart)="onDragStart($event, file.id, 'file')" 
                 (dragend)="onDragEnd()"

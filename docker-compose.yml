@@ -12,5 +12,32 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  backend:
+    container_name: local-drop-backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    volumes:
+      - ./backend/uploads:/app/backend/uploads
+    environment:
+      DATABASE_URL: postgresql://localdrop_user:supersecretpassword@db:5432/localdrop_db?schema=public
+      APP_PIN: "1234"
+
+  frontend:
+    container_name: local-drop-frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:

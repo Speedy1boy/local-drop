@@ -91,4 +91,12 @@ export class FilesController {
     this.filesGateway.broadcastDeletedFolder(id);
     return { success: true };
   }
+
+  @UseGuards(AuthGuard)
+  @Patch('folder/:id/rename')
+  async renameFolder(@Param('id') id: string, @Body('name') name: string) {
+    const updatedFolder = await this.filesService.renameFolder(id, name);
+    this.filesGateway.broadcastFolderRenamed(updatedFolder);
+    return updatedFolder;
+  }
 }

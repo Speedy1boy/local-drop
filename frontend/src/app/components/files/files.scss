@@ -2,6 +2,10 @@
   display: flex;
   flex-direction: column;
   gap: 32px;
+
+  .files-gallery {
+    margin-top: -32px; 
+  }
 }
 
 .dropzone {
@@ -95,6 +99,11 @@
   box-shadow: 0 4px 12px rgba(0,0,0, 0.0) !important;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  
+  user-select: none;
+  -webkit-user-select: none;
+  
+  will-change: transform, opacity;
 
   &:hover {
     transform: translateY(-4px);
@@ -340,4 +349,62 @@
   padding: 4px 12px;
   border-radius: 16px;
   text-decoration: none !important;
+}
+
+.crumb.root-crumb {
+  position: sticky;
+  left: 0;
+  background-color: var(--mat-sys-surface-container-low);
+  padding-right: 8px;
+  margin-right: 0;
+  z-index: 2;
+  
+  transition: box-shadow 0.2s, border-color 0.2s, padding-right 0.2s, margin-right 0.2s;
+  border-right: 1px solid transparent; 
+
+  &.is-scrolled {
+    padding-right: 16px;
+    margin-right: 8px;
+    border-right-color: var(--mat-sys-outline-variant); 
+    box-shadow: 6px 0 8px -4px rgba(0,0,0,0.15); 
+  }
+}
+
+.search-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap; 
+  background-color: transparent;
+  
+  margin-bottom: 32px; 
+  
+  .search-field {
+    flex: 1;
+    min-width: 250px;
+    max-width: 400px;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 8px;
+    background-color: var(--mat-sys-surface-container-highest);
+    padding: 4px;
+    border-radius: 24px;
+    overflow-x: auto; 
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+
+    button {
+      border-radius: 20px;
+      transition: all 0.2s ease-in-out;
+      color: var(--mat-sys-on-surface-variant);
+      
+      &.active-chip {
+        background-color: var(--mat-sys-primary);
+        color: var(--mat-sys-on-primary);
+      }
+    }
+  }
 }
