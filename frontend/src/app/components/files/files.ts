@@ -1,4 +1,7 @@
-import { Component, HostListener, inject, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, HostListener, inject, signal, computed, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +16,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
 import { FileViewerDialog } from '../file-viewer/file-viewer';
 import { Overlay } from '@angular/cdk/overlay';
 import { FolderDialogComponent } from '../folder-dialog/folder-dialog';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-files',
@@ -23,16 +27,33 @@ import { FolderDialogComponent } from '../folder-dialog/folder-dialog';
     MatCardModule, 
     MatProgressBarModule, 
     MatSnackBarModule, 
+    MatFormFieldModule, 
+    MatInputModule, 
+    FormsModule, 
     DragDropDirective
   ],
   templateUrl: './files.html',
-  styleUrl: './files.scss'
+  styleUrl: './files.scss',
+  animations: [
+    trigger('itemAnim', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('250ms ease-out', style({ opacity: 1 }))
+      ])
+    ])
+  ]
 })
-export class FilesComponent {
+export class FilesComponent implements OnInit {
   filesService = inject(FilesService);
   dialog = inject(MatDialog);
   private overlay = inject(Overlay);
   private snackBar = inject(MatSnackBar);
+
+  ngOnInit() {
+    this.breadcrumbs.set([]);
+    this.filesService.loadContents(null);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 0);
+  }
 
   apiUrl = API_URL;
   
@@ -44,6 +65,54 @@ export class FilesComponent {
   
   draggedItem = signal<{id: string, type: 'file' | 'folder'} | null>(null);
   hoveredDropZoneId = signal<string | undefined>(undefined);
+
+  searchQuery = signal('');
+  activeFilter = signal<'all' | 'image' | 'video' | 'doc'>('all');
+
+  isBreadcrumbsScrolled = signal(false);
+
+  private clickTimeout: any;
+
+  onFolderClick(folder: FolderItem) {
+    if (this.clickTimeout) {
+      clearTimeout(this.clickTimeout);
+      this.clickTimeout = null;
+      this.openFolder(folder);
+    } else {
+      this.clickTimeout = setTimeout(() => {
+        this.clickTimeout = null;
+      }, 300);
+    }
+  }
+
+  onBreadcrumbsScroll(event: Event) {
+    const el = event.target as HTMLElement;
+    this.isBreadcrumbsScrolled.set(el.scrollLeft > 5);
+  }
+
+  filteredFolders = computed(() => {
+    if (this.activeFilter() !== 'all') {
+      return [];
+    }
+    const query = this.searchQuery().toLowerCase();
+    return this.filesService.folders().filter(f => f.name.toLowerCase().includes(query));
+  });
+
+  filteredFiles = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    const filter = this.activeFilter();
+    
+    return this.filesService.files().filter(f => {
+      const matchesQuery = f.originalName.toLowerCase().includes(query);
+      
+      let matchesFilter = true;
+      if (filter === 'image') matchesFilter = f.mimeType.startsWith('image/');
+      else if (filter === 'video') matchesFilter = f.mimeType.startsWith('video/');
+      else if (filter === 'doc') matchesFilter = !f.mimeType.startsWith('image/') && !f.mimeType.startsWith('video/');
+
+      return matchesQuery && matchesFilter;
+    });
+  });
 
   @ViewChild('breadcrumbsContainer') breadcrumbsContainer!: ElementRef<HTMLDivElement>;
 
@@ -116,6 +185,7 @@ export class FilesComponent {
     if (index === -1) {
       this.breadcrumbs.set([]);
       this.filesService.loadContents(null);
+      this.isBreadcrumbsScrolled.set(false)
     } else {
       const crumbs = this.breadcrumbs();
       const targetFolder = crumbs[index];
@@ -158,6 +228,26 @@ export class FilesComponent {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) this.filesService.deleteFolder(id);
+    });
+  }
+
+  onRenameFolder(event: Event, folder: FolderItem) {
+    event.stopPropagation();
+    const dialogRef = this.dialog.open(FolderDialogComponent, {
+      width: '400px',
+      data: { name: folder.name },
+      scrollStrategy: this.overlay.scrollStrategies.noop()
+    });
+
+    dialogRef.afterClosed().subscribe(async newName => {
+      if (newName && newName !== folder.name) {
+        try {
+          await this.filesService.renameFolder(folder.id, newName);
+          this.snackBar.open('Папка переименована', 'ОК', { duration: 2000 });
+        } catch (e) {
+          this.snackBar.open('Ошибка при переименовании', 'Закрыть', { duration: 3000 });
+        }
+      }
     });
   }
 

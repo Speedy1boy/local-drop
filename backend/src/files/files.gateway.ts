@@ -32,4 +32,8 @@ export class FilesGateway {
   broadcastFolderMoved(folder: FolderItem) {
     this.server.emit('folderMoved', folder);
   }
+  
+  broadcastFolderRenamed(folder: FolderItem) {
+    this.server.emit('folderRenamed', folder);
+  }
 }

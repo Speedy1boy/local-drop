@@ -64,6 +64,10 @@ export class FilesService {
     this.socket.on('folderDeleted', (deletedId: string) => {
       this.folders.update(current => current.filter(f => f.id !== deletedId));
     });
+
+    this.socket.on('folderRenamed', (updatedFolder: FolderItem) => {
+      this.folders.update(curr => curr.map(f => f.id === updatedFolder.id ? updatedFolder : f));
+    });
   }
 
   loadContents(folderId: string | null = null) {
@@ -137,5 +141,9 @@ export class FilesService {
 
   moveFolder(folderId: string, parentId: string | null): Promise<FolderItem> {
     return firstValueFrom(this.http.patch<FolderItem>(`${API_URL}/files/folder/${folderId}/move`, { parentId }));
+  }
+
+  renameFolder(id: string, name: string): Promise<FolderItem> {
+    return firstValueFrom(this.http.patch<FolderItem>(`${API_URL}/files/folder/${id}/rename`, { name }));
   }
 }

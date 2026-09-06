@@ -177,3 +177,23 @@ html.cdk-global-scrollblock::-webkit-scrollbar,
 body.cdk-global-scrollblock::-webkit-scrollbar {
   display: none !important;
 }
+
+.mat-mdc-form-field {
+  &,
+  .mat-mdc-text-field-wrapper,
+  input.mat-mdc-input-element,
+  textarea.mat-mdc-input-element,
+  .mat-icon[matPrefix],
+  .mat-icon[matSuffix],
+  .mat-mdc-form-field-flex {
+    transition: background-color 0.3s ease-in-out, 
+                color 0.3s ease-in-out, 
+                border-color 0.3s ease-in-out,
+                --mdc-outlined-text-field-container-color 0.3s ease-in-out !important;
+  }
+  
+  input.mat-mdc-input-element::placeholder,
+  textarea.mat-mdc-input-element::placeholder {
+    transition: color 0.3s ease-in-out !important;
+  }
+}

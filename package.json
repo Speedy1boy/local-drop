@@ -8,9 +8,14 @@
     "shared"
   ],
   "scripts": {
-    "start:front": "npm run start --workspace=frontend",
-    "start:back": "npm run start:dev --workspace=backend",
-    "dev": "concurrently \"npm run start:back\" \"npm run start:front\""
+    "build:shared": "tsc --workspace=shared",
+    "db:up": "docker compose up db -d",
+    "db:down": "docker compose stop db",
+    "front": "npm run start --workspace=frontend",
+    "back": "npm run start:dev --workspace=backend",
+    "dev": "concurrently \"npm run back\" \"npm run front\"",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"

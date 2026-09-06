@@ -100,4 +100,11 @@ export class FilesService {
       data: { parentId },
     });
   }
+  
+  async renameFolder(id: string, name: string) {
+    return this.prisma.folderItem.update({
+      where: { id },
+      data: { name },
+    });
+  }
 }

@@ -158,19 +158,3 @@ mat-chip-option {
     text-overflow: ellipsis;
   }
 }
-
-:host ::ng-deep .search-field {
-  &,
-  .mat-mdc-text-field-wrapper,
-  input.mat-mdc-input-element,
-  .mat-icon[matPrefix] {
-    transition: background-color 0.3s ease-in-out, 
-                color 0.3s ease-in-out, 
-                border-color 0.3s ease-in-out,
-                --mdc-outlined-text-field-container-color 0.3s ease-in-out !important;
-  }
-  
-  input.mat-mdc-input-element::placeholder {
-    transition: color 0.3s ease-in-out !important;
-  }
-}
