@@ -1,9 +1,46 @@
 <div class="files-view">
-  <div class="dropzone" appDragDrop (fileDropped)="onFileDropped($event)" (click)="fileInput.click()">
+  
+  <div class="controls-bar">
+    <div class="breadcrumbs" #breadcrumbsContainer>
+      <span class="crumb" (click)="goToBreadcrumb(-1)" [class.active]="breadcrumbs().length === 0"
+            (dragover)="onDragOverZone($event, null)" (dragleave)="onDragLeaveZone()" (drop)="onDrop($event, null)"
+            [class.drag-over-crumb]="hoveredDropZoneId() === 'root'">Главная</span>
+      
+      @for (crumb of breadcrumbs(); track crumb.id; let i = $index) {
+        <mat-icon class="separator">chevron_right</mat-icon>
+        <span class="crumb" (click)="goToBreadcrumb(i)" [class.active]="i === breadcrumbs().length - 1"
+              (dragover)="onDragOverZone($event, crumb.id)" (dragleave)="onDragLeaveZone()" (drop)="onDrop($event, crumb.id)"
+              [class.drag-over-crumb]="hoveredDropZoneId() === crumb.id">
+          {{ crumb.name }}
+        </span>
+      }
+    </div>
+    
+    <button mat-flat-button color="primary" (click)="createFolder()">
+      <mat-icon>create_new_folder</mat-icon> Создать папку
+    </button>
+  </div>
+
+  <div class="dropzone" appDragDrop (fileDropped)="onFileDropped($event)" (click)="!stagedFile() && fileInput.click()">
     <input type="file" #fileInput (change)="onFileSelected($event)" hidden>
-    <mat-icon class="drop-icon">cloud_upload</mat-icon>
-    <h3>Перетащите файл сюда</h3>
-    <p>или нажмите для выбора</p>
+    
+    @if (!stagedFile()) {
+      <mat-icon class="drop-icon">cloud_upload</mat-icon>
+      <h3>Перетащите файл сюда</h3>
+      <p>или нажмите для выбора (можно использовать Ctrl+V)</p>
+    } @else {
+      <div class="staged-file-info" (click)="$event.stopPropagation()">
+        <mat-icon class="staged-icon">insert_drive_file</mat-icon>
+        <h3 class="staged-name">{{ stagedFile()?.name }}</h3>
+        <p class="staged-size">{{ formatBytes(stagedFile()?.size || 0) }}</p>
+        <div class="staged-actions">
+          <button mat-raised-button color="primary" (click)="confirmUpload($event)">
+            <mat-icon>upload</mat-icon> Загрузить
+          </button>
+          <button mat-button color="warn" (click)="cancelUpload($event)">Отмена</button>
+        </div>
+      </div>
+    }
     
     @if (filesService.uploadProgress() !== null) {
       <div class="progress-container" (click)="$event.stopPropagation()">
@@ -14,24 +51,45 @@
   </div>
 
   <div class="files-gallery">
-    @for (file of filesService.files(); track file.id) {
-      
-      <mat-card 
-        class="gallery-card" 
-        (click)="openViewer(file)"
-        (mouseenter)="onGifHover(file.id, true)" 
-        (mouseleave)="onGifHover(file.id, false)">
+
+    @for (folder of filesService.folders(); track folder.id) {
+      <mat-card class="gallery-card folder-card" (dblclick)="openFolder(folder)"
+                draggable="true" 
+                (dragstart)="onDragStart($event, folder.id, 'folder')" 
+                (dragend)="onDragEnd()"
+                [class.drag-over-folder]="hoveredDropZoneId() === folder.id"
+                (dragover)="onDragOverZone($event, folder.id)" 
+                (dragleave)="onDragLeaveZone()" 
+                (drop)="onDrop($event, folder.id)">
+        <div class="preview-area folder-preview">
+          <mat-icon class="folder-icon">folder</mat-icon>
+        </div>
         
+        <div class="file-info-bottom">
+          <div class="file-text">
+            <span class="file-name" [title]="folder.name">{{ folder.name }}</span>
+          </div>
+          <div class="file-actions">
+            <button mat-icon-button color="warn" (click)="onDeleteFolder($event, folder.id, folder.name)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    }
+
+    @for (file of filesService.files(); track file.id) {
+      <mat-card class="gallery-card" (dblclick)="openViewer(file)" 
+                draggable="true" 
+                (dragstart)="onDragStart($event, file.id, 'file')" 
+                (dragend)="onDragEnd()"
+                (mouseenter)="onGifHover(file.id, true)" 
+                (mouseleave)="onGifHover(file.id, false)">
         <div class="preview-area">
-          
           @if (failedMedia().has(file.id)) {
-            <div class="doc-preview">
-              <mat-icon color="warn">broken_image</mat-icon>
-              <span class="ext-label">Ошибка загрузки</span>
-            </div>
+            <div class="doc-preview"><mat-icon color="warn">broken_image</mat-icon><span class="ext-label">Ошибка загрузки</span></div>
           } 
           @else {
-            
             @if (isImage(file.mimeType)) {
               <img [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview" (error)="onMediaError(file.id)">
             } 
@@ -39,10 +97,7 @@
               @if (isGifPlaying(file.id)) {
                 <img [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview" (error)="onMediaError(file.id)">
               } @else {
-                <div class="doc-preview gif-paused">
-                  <mat-icon>gif</mat-icon>
-                  <span class="ext-label">Наведите для просмотра</span>
-                </div>
+                <div class="doc-preview gif-paused"><mat-icon>gif</mat-icon><span class="ext-label">Наведите для просмотра</span></div>
               }
             } 
             @else if (isVideo(file.mimeType)) {
@@ -50,14 +105,9 @@
               <mat-icon class="play-overlay">play_circle_outline</mat-icon>
             } 
             @else {
-              <div class="doc-preview">
-                <mat-icon>insert_drive_file</mat-icon>
-                <span class="ext-label">{{ file.originalName.split('.').pop() }}</span>
-              </div>
+              <div class="doc-preview"><mat-icon>insert_drive_file</mat-icon><span class="ext-label">{{ file.originalName.split('.').pop() }}</span></div>
             }
-
           }
-
         </div>
         
         <div class="file-info-bottom">
@@ -65,17 +115,11 @@
             <span class="file-name" [title]="file.originalName">{{ file.originalName }}</span>
             <span class="file-size">{{ formatBytes(file.size) }}</span>
           </div>
-          
           <div class="file-actions">
-            <button mat-icon-button color="primary" (click)="onDownload($event, file)">
-              <mat-icon>download</mat-icon>
-            </button>
-            <button mat-icon-button color="warn" (click)="onDelete($event, file.id, file.originalName)">
-              <mat-icon>delete</mat-icon>
-            </button>
+            <button mat-icon-button color="primary" (click)="onDownload($event, file)"><mat-icon>download</mat-icon></button>
+            <button mat-icon-button color="warn" (click)="onDelete($event, file.id, file.originalName)"><mat-icon>delete</mat-icon></button>
           </div>
         </div>
-
       </mat-card>
     }
   </div>

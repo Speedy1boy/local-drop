@@ -62,7 +62,7 @@
 
         @if (!isMobile() && actualSidenavPosition() === 'end') {
           <button mat-icon-button (click)="toggleSidenav()" title="Свернуть меню" class="menu-btn edge-right flip-icon">
-            <mat-icon>menu_open</mat-icon>
+            <mat-icon>{{ isSidenavOpen() ? 'menu_open' : 'menu' }}</mat-icon>
           </button>
         }
       </mat-toolbar>

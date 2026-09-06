@@ -14,15 +14,6 @@ model ClipboardItem {
   createdAt DateTime @default(now())
 }
 
-model FileItem {
-  id           String   @id @default(uuid())
-  originalName String
-  fileName     String   @unique
-  mimeType     String
-  size         Int
-  createdAt    DateTime @default(now())
-}
-
 model NoteItem {
   id        String   @id @default(uuid())
   title     String
@@ -30,4 +21,25 @@ model NoteItem {
   tags      String[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model FileItem {
+  id           String   @id @default(uuid())
+  originalName String
+  fileName     String   @unique
+  mimeType     String
+  size         Int
+  createdAt    DateTime @default(now())
+  folderId     String?
+  folder       FolderItem? @relation(fields: [folderId], references: [id], onDelete: Cascade)
+}
+
+model FolderItem {
+  id        String   @id @default(uuid())
+  name      String
+  parentId  String?
+  parent    FolderItem?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  FolderItem[] @relation("FolderHierarchy")
+  files     FileItem[]
+  createdAt DateTime @default(now())
 }

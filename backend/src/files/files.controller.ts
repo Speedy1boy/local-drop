@@ -1,12 +1,6 @@
 import { 
-  Controller, 
-  Get, 
-  Post, 
-  Param, 
-  Delete, 
-  UseInterceptors, 
-  UploadedFile,
-  Res
+  Controller, Get, Post, Param, Delete, UseInterceptors, 
+  UploadedFile, Res, UseGuards, Query, Body 
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -14,8 +8,9 @@ import express from 'express';
 import { extname, join } from 'path';
 import { FilesService } from './files.service.js';
 import { FilesGateway } from './files.gateway.js';
-import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard.js';
+import * as shared from '@local-drop/shared';
+import { Patch } from '@nestjs/common';
 
 const storageConfig = diskStorage({
   destination: './uploads',
@@ -34,16 +29,35 @@ export class FilesController {
   ) {}
 
   @UseGuards(AuthGuard)
+  @Patch(':id/move')
+  async moveFile(@Param('id') id: string, @Body('folderId') folderId: string | null) {
+    const updatedFile = await this.filesService.moveFile(id, folderId);
+    this.filesGateway.broadcastFileMoved(updatedFile);
+    return updatedFile;
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('folder/:id/move')
+  async moveFolder(@Param('id') id: string, @Body('parentId') parentId: string | null) {
+    const updatedFolder = await this.filesService.moveFolder(id, parentId);
+    this.filesGateway.broadcastFolderMoved(updatedFolder);
+    return updatedFolder;
+  }
+
+  @UseGuards(AuthGuard)
   @Get()
-  getAllFiles() {
-    return this.filesService.findAll();
+  getContents(@Query('folderId') folderId?: string) {
+    return this.filesService.getContents(folderId || null);
   }
 
   @UseGuards(AuthGuard)
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', { storage: storageConfig }))
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    const savedFile = await this.filesService.saveMetadata(file);
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('folderId') folderId?: string
+  ) {
+    const savedFile = await this.filesService.saveMetadata(file, folderId || null);
     this.filesGateway.broadcastNewFile(savedFile);
     return savedFile;
   }
@@ -59,6 +73,22 @@ export class FilesController {
   async removeFile(@Param('id') id: string) {
     await this.filesService.remove(id);
     this.filesGateway.broadcastDeletedFile(id);
+    return { success: true };
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('folder')
+  async createFolder(@Body() payload: shared.CreateFolderPayload) {
+    const folder = await this.filesService.createFolder(payload.name, payload.parentId || null);
+    this.filesGateway.broadcastNewFolder(folder);
+    return folder;
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete('folder/:id')
+  async removeFolder(@Param('id') id: string) {
+    await this.filesService.removeFolder(id);
+    this.filesGateway.broadcastDeletedFolder(id);
     return { success: true };
   }
 }

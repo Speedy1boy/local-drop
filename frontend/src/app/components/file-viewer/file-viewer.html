@@ -1,22 +1,41 @@
 <div class="fullscreen-container">
   <div class="top-bar">
-    <h2 [title]="data.file.originalName">{{ data.file.originalName }}</h2>
+    <h2 [title]="currentFile.originalName">{{ currentFile.originalName }}</h2>
     <div class="actions">
-      <button mat-icon-button class="action-btn" (click)="onDownload()">
+      
+      @if (isImage) {
+        <button mat-icon-button class="action-btn" (click)="rotate()" title="Повернуть на 90°">
+          <mat-icon>rotate_right</mat-icon>
+        </button>
+      }
+
+      <button mat-icon-button class="action-btn" (click)="onDownload()" title="Скачать">
         <mat-icon>download</mat-icon>
       </button>
-      <button mat-icon-button class="action-btn" (click)="onDelete()">
+      <button mat-icon-button class="action-btn" (click)="onDelete()" title="Удалить">
         <mat-icon color="warn">delete</mat-icon>
       </button>
-      <button mat-icon-button class="action-btn close-btn" mat-dialog-close>
+      <button mat-icon-button class="action-btn close-btn" mat-dialog-close title="Закрыть">
         <mat-icon>close</mat-icon>
       </button>
     </div>
   </div>
 
   <div class="media-content">
+    
+    @if (hasPrev) {
+      <button mat-icon-button class="nav-btn prev-btn" (click)="prev()">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+    }
+
     @if (isImage) {
-      <img [src]="url" alt="preview">
+      <img 
+        [src]="url" 
+        alt="preview" 
+        [class.sideways]="isRotatedSideways" 
+        [style.transform]="'rotate(' + rotation + 'deg)'"
+      >
     } @else if (isVideo) {
       <video controls [src]="url" autoplay></video>
     } @else if (isAudio) {
@@ -27,5 +46,12 @@
         <p>Предпросмотр недоступен</p>
       </div>
     }
+
+    @if (hasNext) {
+      <button mat-icon-button class="nav-btn next-btn" (click)="next()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    }
+
   </div>
 </div>
