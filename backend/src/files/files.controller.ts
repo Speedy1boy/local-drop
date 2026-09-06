@@ -13,7 +13,7 @@ import * as shared from '@local-drop/shared';
 import { Patch } from '@nestjs/common';
 
 const storageConfig = diskStorage({
-  destination: './uploads',
+  destination: join(process.cwd(), 'uploads'),
   filename: (req, file, callback) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const ext = extname(file.originalname);

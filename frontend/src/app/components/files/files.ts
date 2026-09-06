@@ -71,20 +71,6 @@ export class FilesComponent implements OnInit {
 
   isBreadcrumbsScrolled = signal(false);
 
-  private clickTimeout: any;
-
-  onFolderClick(folder: FolderItem) {
-    if (this.clickTimeout) {
-      clearTimeout(this.clickTimeout);
-      this.clickTimeout = null;
-      this.openFolder(folder);
-    } else {
-      this.clickTimeout = setTimeout(() => {
-        this.clickTimeout = null;
-      }, 300);
-    }
-  }
-
   onBreadcrumbsScroll(event: Event) {
     const el = event.target as HTMLElement;
     this.isBreadcrumbsScrolled.set(el.scrollLeft > 5);
@@ -302,11 +288,13 @@ export class FilesComponent implements OnInit {
     const file = this.stagedFile();
     if (!file) return;
 
+    this.stagedFile.set(null);
+
     try {
       await this.filesService.uploadFile(file);
       this.snackBar.open('Файл успешно загружен!', 'ОК', { duration: 3000 });
-      this.stagedFile.set(null); 
     } catch (error) {
+      this.stagedFile.set(file);
       this.snackBar.open('Ошибка при загрузке файла', 'Закрыть', { duration: 5000 });
     }
   }

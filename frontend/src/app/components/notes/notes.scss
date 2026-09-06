@@ -158,3 +158,54 @@ mat-chip-option {
     text-overflow: ellipsis;
   }
 }
+
+.tags-filter {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+@media (max-width: 600px) {
+  
+  .header {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .search-bar-row {
+    gap: 12px;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
+
+  .create-btn {
+    min-width: 56px !important;
+    width: 56px !important;
+    padding: 0 !important;
+    
+    mat-icon {
+      margin: 0 !important;
+    }
+  }
+
+  .note-card {
+    margin-bottom: 16px;
+  }
+  
+  mat-card-header {
+    padding: 16px 16px 8px 16px;
+  }
+
+  .note-content {
+    padding: 0 16px;
+  }
+
+  .card-footer {
+    padding: 8px 8px 8px 16px;
+  }
+}

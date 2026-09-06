@@ -26,7 +26,7 @@ services:
       - ./backend/uploads:/app/backend/uploads
     environment:
       DATABASE_URL: postgresql://localdrop_user:supersecretpassword@db:5432/localdrop_db?schema=public
-      APP_PIN: "1234"
+      APP_PIN: "6913"
 
   frontend:
     container_name: local-drop-frontend

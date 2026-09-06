@@ -408,3 +408,52 @@
     }
   }
 }
+
+@media (max-width: 600px) {
+  
+  .controls-bar {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
+
+  .create-folder-btn {
+    min-width: 48px !important;
+    padding: 0 !important;
+    border-radius: 12px;
+    
+    mat-icon {
+      margin: 0 !important;
+    }
+  }
+
+  .breadcrumbs {
+    font-size: 1rem;
+    
+    .crumb {
+      max-width: 100px;
+    }
+    
+    .crumb.root-crumb {
+      padding-right: 12px;
+      
+      &.is-scrolled {
+        padding-right: 12px;
+      }
+    }
+    
+    .separator {
+      font-size: 18px;
+      width: 18px;
+    }
+  }
+
+  .dropzone {
+    padding: 24px 16px;
+    h3 { font-size: 1.1rem; }
+    p { font-size: 0.9rem; }
+  }
+}
