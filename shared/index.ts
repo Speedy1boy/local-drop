@@ -12,6 +12,19 @@ export interface FileItem {
   mimeType: string;
   size: number;
   createdAt: Date | string;
+  folderId?: string | null; 
+}
+
+export interface FolderItem {
+  id: string;
+  name: string;
+  parentId: string | null;
+  createdAt: Date | string;
+}
+
+export interface CreateFolderPayload {
+  name: string;
+  parentId?: string | null;
 }
 
 export interface CreateClipboardPayload {
