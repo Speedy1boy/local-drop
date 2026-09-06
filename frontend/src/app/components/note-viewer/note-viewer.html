@@ -1,0 +1,56 @@
+<h2 mat-dialog-title>{{ data?.id ? 'Редактировать заметку' : 'Новая заметка' }}</h2>
+
+<mat-dialog-content class="note-form">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Заголовок</mat-label>
+    <input 
+      matInput 
+      [(ngModel)]="title" 
+      #titleInput="ngModel"
+      placeholder="Введите заголовок" 
+      required
+      autofocus>
+    @if (titleInput.invalid && (titleInput.dirty || titleInput.touched)) {
+      <mat-error>Заголовок обязателен для заполнения</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Текст заметки</mat-label>
+    <textarea 
+      matInput 
+      cdkTextareaAutosize 
+      cdkAutosizeMinRows="4" 
+      cdkAutosizeMaxRows="15" 
+      [(ngModel)]="content"
+      #contentInput="ngModel"
+      required></textarea>
+    @if (contentInput.invalid && (contentInput.dirty || contentInput.touched)) {
+      <mat-error>Текст заметки обязателен для заполнения</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Теги (нажмите Enter)</mat-label>
+    <mat-chip-grid #chipGrid>
+      @for (tag of tags; track tag) {
+        <mat-chip-row (removed)="removeTag(tag)">
+          {{ tag }}
+          <button matChipRemove><mat-icon>cancel</mat-icon></button>
+        </mat-chip-row>
+      }
+      <input placeholder="Новый тег" [matChipInputFor]="chipGrid" (matChipInputTokenEnd)="addTag($event)">
+    </mat-chip-grid>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-button mat-dialog-close>Отмена</button>
+  <button 
+    mat-flat-button 
+    color="primary" 
+    [disabled]="!title.trim() || !content.trim()" 
+    (click)="onSave()">
+    Сохранить
+  </button>
+</mat-dialog-actions>

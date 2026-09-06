@@ -1,0 +1,21 @@
+.note-form { 
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  min-width: 300px;
+  width: 100%;
+  max-width: 600px;
+  
+  .full-width:first-child {
+    margin-top: 12px;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+::ng-deep textarea.cdk-textarea-autosize {
+  overflow-y: auto !important;
+}

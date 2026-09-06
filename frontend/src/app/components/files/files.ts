@@ -27,6 +27,16 @@ export class FilesComponent {
   
   hoveredGifs = signal<Set<string>>(new Set());
 
+  failedMedia = signal<Set<string>>(new Set());
+
+  onMediaError(id: string) {
+    this.failedMedia.update(set => {
+      const newSet = new Set(set);
+      newSet.add(id);
+      return newSet;
+    });
+  }
+  
   onFileDropped(file: File) {
     this.filesService.uploadFile(file);
   }
@@ -94,7 +104,9 @@ export class FilesComponent {
     const dialogRef = this.dialog.open(FileViewerDialog, {
       data: { file, url: `${this.apiUrl}/files/download/${file.fileName}` },
       panelClass: 'fullscreen-dialog',
-      backdropClass: 'dark-backdrop'
+      backdropClass: 'dark-backdrop',
+      scrollStrategy: this.overlay.scrollStrategies.block(),
+      autoFocus: false
     });
 
     dialogRef.afterClosed().subscribe(result => {

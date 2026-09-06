@@ -22,3 +22,12 @@ model FileItem {
   size         Int
   createdAt    DateTime @default(now())
 }
+
+model NoteItem {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

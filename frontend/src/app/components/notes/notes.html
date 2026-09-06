@@ -1,0 +1,69 @@
+<div class="notes-view">
+  
+  <div class="header">
+    <div class="search-bar-row">
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput (input)="updateSearch($event)" placeholder="Поиск по заметкам...">
+      </mat-form-field>
+
+      <button mat-fab extended color="primary" class="create-btn" (click)="openNoteDialog()">
+        <mat-icon>add</mat-icon> Создать
+      </button>
+    </div>
+
+    @if (notesService.allTags().length > 0) {
+      <div class="tags-filter">
+        <mat-chip-listbox hideSingleSelectionIndicator>
+          <mat-chip-option [selected]="!selectedTag()" (click)="setFilter(null)" color="primary">
+            Все заметки
+          </mat-chip-option>
+          @for (tag of notesService.allTags(); track tag) {
+            <mat-chip-option [selected]="selectedTag() === tag" (click)="setFilter(tag)" color="primary">
+              #{{ tag }}
+            </mat-chip-option>
+          }
+        </mat-chip-listbox>
+      </div>
+    }
+  </div>
+
+  <div class="masonry-grid">
+    @for (note of filteredNotes(); track note.id) {
+      <mat-card class="note-card" (click)="openNoteDialog(note)">
+        <mat-card-header>
+          @if (note.title) {
+            <mat-card-title class="note-title">{{ note.title }}</mat-card-title>
+          }
+        </mat-card-header>
+
+        <mat-card-content class="note-content">
+          <p class="content-text">{{ note.content }}</p>
+          
+          @if (note.tags && note.tags.length > 0) {
+            <div class="tags-container">
+              <mat-chip-set>
+                @for (tag of note.tags; track tag) {
+                  <mat-chip class="small-chip">#{{ tag }}</mat-chip>
+                }
+              </mat-chip-set>
+            </div>
+          }
+        </mat-card-content>
+
+        <div class="card-footer">
+          <span class="date-text">{{ note.updatedAt | date:'dd MMM, HH:mm' }}</span>
+          <button mat-icon-button color="warn" class="delete-btn" (click)="onDelete($event, note.id)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </mat-card>
+    } @empty {
+      <div class="empty-state">
+        <mat-icon>edit_document</mat-icon>
+        <p>Здесь пока пусто. Создайте первую заметку или измените условия поиска!</p>
+      </div>
+    }
+  </div>
+
+</div>

@@ -23,29 +23,41 @@
         (mouseleave)="onGifHover(file.id, false)">
         
         <div class="preview-area">
-          @if (isImage(file.mimeType)) {
-            <img [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview">
-          } 
-          @else if (isGif(file.mimeType)) {
-            @if (isGifPlaying(file.id)) {
-              <img [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview">
-            } @else {
-              <div class="doc-preview gif-paused">
-                <mat-icon>gif</mat-icon>
-                <span class="ext-label">Наведите для просмотра</span>
-              </div>
-            }
-          } 
-          @else if (isVideo(file.mimeType)) {
-            <video [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview" preload="metadata" muted></video>
-            <mat-icon class="play-overlay">play_circle_outline</mat-icon>
+          
+          @if (failedMedia().has(file.id)) {
+            <div class="doc-preview">
+              <mat-icon color="warn">broken_image</mat-icon>
+              <span class="ext-label">Ошибка загрузки</span>
+            </div>
           } 
           @else {
-            <div class="doc-preview">
-              <mat-icon>insert_drive_file</mat-icon>
-              <span class="ext-label">{{ file.originalName.split('.').pop() }}</span>
-            </div>
+            
+            @if (isImage(file.mimeType)) {
+              <img [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview" (error)="onMediaError(file.id)">
+            } 
+            @else if (isGif(file.mimeType)) {
+              @if (isGifPlaying(file.id)) {
+                <img [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview" (error)="onMediaError(file.id)">
+              } @else {
+                <div class="doc-preview gif-paused">
+                  <mat-icon>gif</mat-icon>
+                  <span class="ext-label">Наведите для просмотра</span>
+                </div>
+              }
+            } 
+            @else if (isVideo(file.mimeType)) {
+              <video [src]="apiUrl + '/files/download/' + file.fileName" class="image-preview" preload="metadata" muted (error)="onMediaError(file.id)"></video>
+              <mat-icon class="play-overlay">play_circle_outline</mat-icon>
+            } 
+            @else {
+              <div class="doc-preview">
+                <mat-icon>insert_drive_file</mat-icon>
+                <span class="ext-label">{{ file.originalName.split('.').pop() }}</span>
+              </div>
+            }
+
           }
+
         </div>
         
         <div class="file-info-bottom">

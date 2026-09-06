@@ -12,6 +12,7 @@ import { ThemeService } from './services/theme';
 import { LoginComponent } from './components/login/login';
 import { ClipboardComponent } from './components/clipboard/clipboard';
 import { FilesComponent } from './components/files/files';
+import { NotesComponent } from './components/notes/notes';
 
 @Component({
   selector: 'app-root',
@@ -24,7 +25,8 @@ import { FilesComponent } from './components/files/files';
     MatButtonModule,
     LoginComponent,
     ClipboardComponent,
-    FilesComponent
+    FilesComponent,
+    NotesComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -42,17 +44,15 @@ export class App {
   themeService = inject(ThemeService);
   private breakpointObserver = inject(BreakpointObserver);
 
-  activeView: 'clipboard' | 'files' = 'clipboard';
+  activeView: 'clipboard' | 'files' | 'notes' = 'clipboard'; 
   
+  protected readonly window = window;
   isMobile = signal<boolean>(false);
   isSidenavOpen = signal<boolean>(true);
-  
   savedSidenavPosition = signal<'start' | 'end'>('start');
 
   actualSidenavPosition = computed(() => {
-    if (this.isMobile()) {
-      return 'start';
-    }
+    if (this.isMobile()) return 'start';
     return this.savedSidenavPosition();
   });
 
@@ -63,7 +63,7 @@ export class App {
     }
 
     const savedView = localStorage.getItem('localdrop_active_view');
-    if (savedView === 'clipboard' || savedView === 'files') {
+    if (savedView === 'clipboard' || savedView === 'files' || savedView === 'notes') {
       this.activeView = savedView;
     }
 
@@ -78,7 +78,6 @@ export class App {
       .subscribe(result => {
         const isMobileSize = result.matches;
         const isHorizontalPhone = isTouchDevice() && window.innerHeight < 500;
-        
         const mobile = isMobileSize || isHorizontalPhone;
         
         this.isMobile.set(mobile);
@@ -96,7 +95,7 @@ export class App {
     localStorage.setItem('localdrop_sidenav_pos', newPos);
   }
 
-  selectView(view: 'clipboard' | 'files') {
+  selectView(view: 'clipboard' | 'files' | 'notes') {
     this.activeView = view;
     localStorage.setItem('localdrop_active_view', view);
     

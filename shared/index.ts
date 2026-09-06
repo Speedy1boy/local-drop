@@ -18,3 +18,18 @@ export interface CreateClipboardPayload {
   content: string;
   type?: string;
 }
+
+export interface NoteItem {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface CreateNotePayload {
+  title: string;
+  content: string;
+  tags: string[];
+}

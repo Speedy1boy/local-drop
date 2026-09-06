@@ -33,6 +33,10 @@
           <mat-icon matListItemIcon>folder</mat-icon>
           <div matListItemTitle>Файлы</div>
         </a>
+        <a mat-list-item [class.active]="activeView === 'notes'" (click)="selectView('notes')">
+          <mat-icon matListItemIcon>edit_note</mat-icon>
+          <div matListItemTitle>Заметки</div>
+        </a>
       </mat-nav-list>
     </mat-sidenav>
 
@@ -45,7 +49,7 @@
           </button>
         }
 
-        <span class="toolbar-title">{{ activeView === 'clipboard' ? 'Буфер обмена' : 'Хранилище файлов' }}</span>
+        <span class="toolbar-title">{{ activeView === 'clipboard' ? 'Буфер обмена' : activeView === 'files' ? 'Хранилище файлов' : 'Мои Заметки' }}</span>
         
         <span class="spacer"></span>
         
@@ -72,6 +76,11 @@
         @if (activeView === 'files') {
           <div @pageAnimation>
             <app-files />
+          </div>
+        }
+        @if (activeView === 'notes') {
+          <div @pageAnimation>
+            <app-notes />
           </div>
         }
       </div>
