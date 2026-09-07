@@ -27,6 +27,8 @@ services:
     environment:
       DATABASE_URL: postgresql://localdrop_user:supersecretpassword@db:5432/localdrop_db?schema=public
       APP_PIN: "693413"
+      ADMIN_PASSWORD: Y4EbalR0t_Tvo3iShluhi@Mamfsh1xDloX
+      JWT_SECRET: :>SufSyX6u|<XD*L1QB_ZJ*LIM8QG=K&.kZhj^t56Z+v*ctUmdtnp(n}q+C+&IGp^ksLX>$34T0r)ktUKH^S=V
 
   frontend:
     container_name: local-drop-frontend
