@@ -2,7 +2,7 @@ import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common';
 import { ThrottlerException } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import { SecurityService } from './security.service.js';
-import { RATE_LIMIT_MESSAGES } from '../rate-limits.config.js';
+import { RATE_LIMIT_MESSAGES, ANTI_SPAM } from '../rate-limits.config.js';
 
 @Catch(ThrottlerException)
 export class ThrottlerExceptionFilter implements ExceptionFilter {
@@ -20,13 +20,13 @@ export class ThrottlerExceptionFilter implements ExceptionFilter {
 
     const record = this.spamTracker.get(ip) || { 
       count: 0, 
-      timer: setTimeout(() => this.spamTracker.delete(ip), 60000) 
+      timer: setTimeout(() => this.spamTracker.delete(ip), ANTI_SPAM.TRACKER_TTL) 
     };
     
     record.count++;
     this.spamTracker.set(ip, record);
 
-    if (record.count >= 3) {
+    if (record.count >= ANTI_SPAM.MAX_THROTTLER_ERRORS) {
       await this.securityService.blockIpPermanently(ip, 'Спам-атака (DDOS)', userAgent);
       clearTimeout(record.timer);
       this.spamTracker.delete(ip);

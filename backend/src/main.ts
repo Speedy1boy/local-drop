@@ -6,6 +6,7 @@ import { AppModule } from './app.module.js';
 import { PrismaService } from './prisma/prisma.service.js';
 import { SecurityService } from './auth/security.service.js';
 import { ThrottlerExceptionFilter } from './auth/throttler-exception.filter.js';
+import { SERVER_CONFIG } from './rate-limits.config.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,8 +15,8 @@ async function bootstrap() {
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   }));
 
-  app.use(bodyParser.json({ limit: '2mb' }));
-  app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
+  app.use(bodyParser.json({ limit: SERVER_CONFIG.BODY_LIMIT }));
+  app.use(bodyParser.urlencoded({ limit: SERVER_CONFIG.BODY_LIMIT, extended: true }));
 
   app.enableCors({
     origin: '*',
@@ -44,6 +45,6 @@ async function bootstrap() {
   const securityService = app.get(SecurityService);
   app.useGlobalFilters(new ThrottlerExceptionFilter(securityService));
 
-  await app.listen(3000, '0.0.0.0');
+  await app.listen(SERVER_CONFIG.PORT, '0.0.0.0');
 }
 bootstrap();

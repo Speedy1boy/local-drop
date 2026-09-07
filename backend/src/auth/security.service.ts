@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AuthGateway } from './auth.gateway.js';
-import { MAX_LOGIN_ATTEMPTS } from '../rate-limits.config.js';
+import { MAX_LOGIN_ATTEMPTS, ANTI_SPAM } from '../rate-limits.config.js';
 
 @Injectable()
 export class SecurityService implements OnModuleInit {
@@ -30,15 +30,17 @@ export class SecurityService implements OnModuleInit {
   }
 
   async logVisit(ip: string) {
-    const now = Date.now();
-    const lastVisit = this.visitTracker.get(ip);
+    const cleanIp = ip.startsWith('::ffff:') ? ip.replace('::ffff:', '') : ip;
     
-    if (!lastVisit || (now - lastVisit > 300000)) { 
+    const now = Date.now();
+    const lastVisit = this.visitTracker.get(cleanIp);
+    
+    if (!lastVisit || (now - lastVisit > ANTI_SPAM.VISIT_LOG_INTERVAL)) { 
       await this.prisma.securityLog.create({
-        data: { ip, action: 'VISIT', details: 'Открыта страница входа' }
+        data: { ip: cleanIp, action: 'VISIT', details: 'Открыта страница входа' }
       });
       this.authGateway.broadcastAdminUpdate('logs');
-      this.visitTracker.set(ip, now);
+      this.visitTracker.set(cleanIp, now);
     }
   }
 
@@ -59,20 +61,22 @@ export class SecurityService implements OnModuleInit {
   }
 
   async handleFailedLogin(ip: string, input: string) {
+    const cleanIp = ip.startsWith('::ffff:') ? ip.replace('::ffff:', '') : ip;
+
     await this.prisma.securityLog.create({
-      data: { ip, action: 'FAILED_LOGIN', details: `Введен код: ${input}` }
+      data: { ip: cleanIp, action: 'FAILED_LOGIN', details: `Введен код: ${input}` }
     });
     this.authGateway.broadcastAdminUpdate('logs');
 
-    const attempts = (this.failedAttempts.get(ip) || 0) + 1;
+    const attempts = (this.failedAttempts.get(cleanIp) || 0) + 1;
     
     if (attempts >= MAX_LOGIN_ATTEMPTS) {
-      await this.blockIpPermanently(ip, 'Brute force PIN');
-      this.failedAttempts.delete(ip);
+      await this.blockIpPermanently(cleanIp, 'Brute force PIN');
+      this.failedAttempts.delete(cleanIp);
       throw new ForbiddenException('Слишком много попыток. Ваш IP заблокирован навсегда.');
     }
 
-    this.failedAttempts.set(ip, attempts);
+    this.failedAttempts.set(cleanIp, attempts);
     throw new UnauthorizedException(`Неверный код. Осталось попыток: ${MAX_LOGIN_ATTEMPTS - attempts}`);
   }
 

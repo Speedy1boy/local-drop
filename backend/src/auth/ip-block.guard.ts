@@ -7,7 +7,18 @@ export class IpBlockGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const ip = (request.headers['x-forwarded-for'] as string) || request.socket.remoteAddress || 'unknown';
+    
+    let ip = (request.headers['x-forwarded-for'] as string) || request.socket.remoteAddress || 'unknown';
+    
+    if (ip.includes(',')) {
+      ip = ip.split(',')[0].trim();
+    }
+
+    if (ip.startsWith('::ffff:')) {
+      ip = ip.replace('::ffff:', '');
+    }
+
+    request.rawIp = ip; 
     
     this.securityService.checkIp(ip); 
     

@@ -13,8 +13,12 @@ import { AuthGuard } from '../auth/auth.guard.js';
 import * as shared from '@local-drop/shared';
 import { RATE_LIMITS } from '../rate-limits.config.js';
 
+const uploadsDestination = process.cwd().endsWith('backend')
+  ? join(process.cwd(), 'uploads')
+  : join(process.cwd(), 'backend', 'uploads');
+
 const storageConfig = diskStorage({
-  destination: join(process.cwd(), 'uploads'),
+  destination: uploadsDestination,
   filename: (req, file, callback) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const ext = extname(file.originalname);
@@ -67,7 +71,7 @@ export class FilesController {
   @SkipThrottle()
   @Get('download/:fileName')
   downloadFile(@Param('fileName') fileName: string, @Res() res: express.Response) {
-    const filePath = join(process.cwd(), 'uploads', fileName);
+    const filePath = join(uploadsDestination, fileName);
     res.sendFile(filePath);
   }
 

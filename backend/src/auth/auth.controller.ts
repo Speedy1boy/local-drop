@@ -14,9 +14,22 @@ export class AuthController {
     private securityService: SecurityService
   ) {}
 
+  private getCleanIp(req: Request): string {
+    let ip = (req as any).rawIp || (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    
+    if (ip.includes(',')) {
+      ip = ip.split(',')[0].trim();
+    }
+    if (ip.startsWith('::ffff:')) {
+      ip = ip.replace('::ffff:', '');
+    }
+    return ip;
+  }
+
   @Get('ping')
   async ping(@Req() req: Request) {
-    const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    const ip = this.getCleanIp(req);
+    
     this.securityService.checkIp(ip);
     await this.securityService.logVisit(ip);
     return { status: 'ok' };
@@ -25,7 +38,7 @@ export class AuthController {
   @Throttle({ default: RATE_LIMITS.AUTH })
   @Post('login')
   async login(@Body('pin') input: string, @Req() req: Request) {
-    const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    const ip = this.getCleanIp(req);
     const userAgent = req.headers['user-agent'] || 'unknown';
 
     this.securityService.checkIp(ip);

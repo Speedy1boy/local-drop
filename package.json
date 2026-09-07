@@ -9,11 +9,25 @@
   ],
   "scripts": {
     "build:shared": "npm run build --workspace=shared",
+    "build:front": "npm run build --workspace=frontend",
+    "build:back": "npm run build --workspace=backend",
+    
     "db:up": "docker compose up db -d",
     "db:down": "docker compose stop db",
+    
+    "db:migrate": "npm run prisma:migrate --workspace=backend",
+    "db:sync": "npm run db:up && npm run sync-files --workspace=backend",
+
     "front": "npm run start --workspace=frontend",
     "back": "npm run start:dev --workspace=backend",
     "dev": "concurrently \"npm run back\" \"npm run front\"",
+    
+    "build:all": "npm run build:shared && npm run db:up && npm run db:migrate && npm run build:back && npm run build:front",
+    
+    "start:prod": "concurrently \"node backend/dist/main.js\" \"npx serve frontend/dist/frontend/browser -l 4200 -s\"",
+    
+    "all": "npm run build:all && npm run start:prod",
+    
     "docker:up": "docker compose up --build -d",
     "docker:down": "docker compose down"
   },

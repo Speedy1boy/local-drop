@@ -7,6 +7,14 @@ import * as path from 'path';
 export class FilesService {
   constructor(private prisma: PrismaService) {}
 
+  private getUploadsDir(): string {
+    const cwd = process.cwd();
+    if (cwd.endsWith('backend')) {
+      return path.join(cwd, 'uploads');
+    }
+    return path.join(cwd, 'backend', 'uploads');
+  }
+
   async getContents(folderId: string | null = null) {
     const folders = await this.prisma.folderItem.findMany({
       where: { parentId: folderId },
@@ -22,7 +30,7 @@ export class FilesService {
   }
 
   async saveMetadata(file: Express.Multer.File, folderId: string | null = null) {
-    const filePath = path.join(process.cwd(), 'uploads', file.filename);
+    const filePath = path.join(this.getUploadsDir(), file.filename);
     
     try {
       const { fileTypeFromFile } = await import('file-type');
@@ -60,7 +68,7 @@ export class FilesService {
 
     if (!fileRecord) throw new NotFoundException('Файл не найден');
 
-    const filePath = path.join(process.cwd(), 'uploads', fileRecord.fileName);
+    const filePath = path.join(this.getUploadsDir(), fileRecord.fileName);
     
     try {
       await fs.access(filePath);
@@ -80,7 +88,7 @@ export class FilesService {
     const filesToDelete = await this.getAllNestedFiles(id);
     
     for (const file of filesToDelete) {
-      const filePath = path.join(process.cwd(), 'uploads', file.fileName);
+      const filePath = path.join(this.getUploadsDir(), file.fileName);
       try { await fs.unlink(filePath); } catch (e) {}
     }
 

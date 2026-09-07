@@ -5,6 +5,7 @@ import { AuthService } from './auth.service.js';
 import { AdminController } from './admin.controller.js';
 import { SecurityService } from './security.service.js';
 import { AuthGateway } from './auth.gateway.js';
+import { SECURITY_CONFIG } from '../rate-limits.config.js';
 
 @Global()
 @Module({
@@ -12,7 +13,7 @@ import { AuthGateway } from './auth.gateway.js';
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '30d' },
+      signOptions: { expiresIn: SECURITY_CONFIG.JWT_EXPIRES_IN },
     }),
   ],
   controllers: [AuthController, AdminController],

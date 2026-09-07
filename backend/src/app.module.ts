@@ -9,6 +9,7 @@ import { FilesModule } from './files/files.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { NotesModule } from './notes/notes.module.js';
 import { IpBlockGuard } from './auth/ip-block.guard.js';
+import { RATE_LIMITS } from './rate-limits.config.js';
 
 @Module({
   imports: [
@@ -18,8 +19,8 @@ import { IpBlockGuard } from './auth/ip-block.guard.js';
     AuthModule, 
     NotesModule,
     ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 500,
+      ttl: RATE_LIMITS.GLOBAL.ttl,
+      limit: RATE_LIMITS.GLOBAL.limit, 
     }]),
   ],
   controllers: [AppController],
