@@ -1,6 +1,3 @@
-# `backend/README.md`
-
-```markdown
 # Local Drop | Backend
 
 REST API и WebSocket сервер приложения на базе NestJS. Отвечает за работу с файловой системой, авторизацию, бизнес-логику и управление базой данных.
