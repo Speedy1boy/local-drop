@@ -106,3 +106,35 @@ mat-nav-list a[mat-list-item] {
   margin-right: -8px !important;
   margin-left: 8px !important;
 }
+
+.ban-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #121212;
+  color: #ff5252;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.ban-icon {
+  font-size: 100px;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 24px;
+}
+
+.ban-screen h1 {
+  font-size: 2.5rem;
+  margin: 0 0 16px 0;
+}
+
+.ban-screen p {
+  font-size: 1.2rem;
+  color: #ffffff;
+  opacity: 0.8;
+}

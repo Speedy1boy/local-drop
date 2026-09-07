@@ -43,3 +43,33 @@ model FolderItem {
   files     FileItem[]
   createdAt DateTime @default(now())
 }
+
+model SystemSetting {
+  key   String @id
+  value String
+}
+
+model DeviceSession {
+  id           String   @id @default(uuid())
+  ip           String
+  userAgent    String
+  role         String   @default("guest")
+  tokenVersion Int
+  createdAt    DateTime @default(now())
+  lastActive   DateTime @default(now())
+}
+
+model SecurityLog {
+  id        String   @id @default(uuid())
+  ip        String
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+model BlockedIp {
+  ip        String   @id
+  reason    String
+  userAgent String?
+  createdAt DateTime @default(now())
+}

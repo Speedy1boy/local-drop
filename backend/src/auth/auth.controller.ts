@@ -1,16 +1,50 @@
-import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { Controller, Post, Body, Req, Get } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import type { Request } from 'express';
+import { AuthService } from './auth.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { SecurityService } from './security.service.js';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private authService: AuthService,
+    private prisma: PrismaService,
+    private securityService: SecurityService
+  ) {}
 
+  @Get('ping')
+  ping() {
+    return { status: 'ok' };
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
-  login(@Body('pin') pin: string) {
-    if (pin === process.env.APP_PIN) {
-      const token = this.jwtService.sign({ authorized: true });
-      return { token };
+  async login(@Body('pin') input: string, @Req() req: Request) {
+    const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    this.securityService.checkIp(ip);
+
+    const dbPinSetting = await this.prisma.systemSetting.findUnique({ where: { key: 'app_pin' } });
+    const currentPin = dbPinSetting?.value || process.env.APP_PIN;
+    
+    const maintenanceSetting = await this.prisma.systemSetting.findUnique({ where: { key: 'maintenance_mode' } });
+    const isMaintenance = maintenanceSetting?.value === 'true';
+
+    let role: 'guest' | 'admin' | null = null;
+    
+    if (input === process.env.ADMIN_PASSWORD) {
+      role = 'admin';
+    } else if (input === currentPin && !isMaintenance) {
+      role = 'guest';
     }
-    throw new UnauthorizedException('Неверный PIN-код');
+
+    if (!role) {
+      return this.securityService.handleFailedLogin(ip, input);
+    }
+
+    this.securityService.handleSuccessfulLogin(ip);
+    return this.authService.createSession(ip, userAgent, role);
   }
 }

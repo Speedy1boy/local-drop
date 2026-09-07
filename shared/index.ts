@@ -46,3 +46,26 @@ export interface CreateNotePayload {
   content: string;
   tags: string[];
 }
+
+export interface DeviceSession {
+  id: string;
+  ip: string;
+  userAgent: string;
+  role: 'guest' | 'admin';
+  createdAt: Date | string;
+  lastActive: Date | string;
+}
+
+export interface SecurityLog {
+  id: string;
+  ip: string;
+  action: string;
+  details?: string;
+  createdAt: Date | string;
+}
+
+export interface BlockedIp {
+  ip: string;
+  reason: string;
+  createdAt: Date | string;
+}

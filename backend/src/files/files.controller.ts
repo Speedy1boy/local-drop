@@ -2,6 +2,7 @@ import {
   Controller, Get, Post, Param, Delete, UseInterceptors, 
   UploadedFile, Res, UseGuards, Query, Body 
 } from '@nestjs/common';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import express from 'express';
@@ -50,6 +51,7 @@ export class FilesController {
     return this.filesService.getContents(folderId || null);
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) 
   @UseGuards(AuthGuard)
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', { storage: storageConfig }))
@@ -62,10 +64,11 @@ export class FilesController {
     return savedFile;
   }
 
+  @SkipThrottle()
   @Get('download/:fileName')
   downloadFile(@Param('fileName') fileName: string, @Res() res: express.Response) {
     const filePath = join(process.cwd(), 'uploads', fileName);
-    res.download(filePath);
+    res.sendFile(filePath);
   }
 
   @UseGuards(AuthGuard)

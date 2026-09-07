@@ -1,89 +1,90 @@
-@if (!authService.isAuthenticated()) {
-  <app-login />
+@if (authService.isBanned()) {
+  <div class="ban-screen">
+    <mat-icon class="ban-icon">gpp_bad</mat-icon>
+    <h1>Доступ закрыт</h1>
+    <p>{{ authService.banMessage() }}</p>
+  </div>
 } @else {
-  <mat-sidenav-container class="app-container" autosize="true">
-    
-    <mat-sidenav 
-      [position]="actualSidenavPosition()"
-      [fixedInViewport]="true"
-      [mode]="isMobile() ? 'over' : 'side'" 
-      [opened]="isSidenavOpen()"
-      (closed)="isSidenavOpen.set(false)"
-      class="sidenav">
+  @if (!authService.isAuthenticated()) {
+    <app-login />
+  } @else {
+    <mat-sidenav-container class="app-container" autosize="true">
+      <mat-sidenav 
+        [position]="actualSidenavPosition()"
+        [fixedInViewport]="true"
+        [mode]="isMobile() ? 'over' : 'side'" 
+        [opened]="isSidenavOpen()"
+        (closed)="isSidenavOpen.set(false)"
+        class="sidenav">
 
-      <div class="logo-container">
-        <div class="logo-text">
-          <mat-icon color="primary">cloud_sync</mat-icon>
-          <h2>Local Drop</h2>
+        <div class="logo-container">
+          <div class="logo-text">
+            <mat-icon color="primary">cloud_sync</mat-icon>
+            <h2>Local Drop</h2>
+          </div>
+          
+          @if (!isMobile()) {
+            <button mat-icon-button (click)="togglePosition()" title="Сменить сторону меню" class="sidenav-action-btn">
+              <mat-icon>swap_horiz</mat-icon>
+            </button>
+          }
         </div>
-        
-        @if (!isMobile()) {
-          <button mat-icon-button (click)="togglePosition()" title="Сменить сторону меню" class="sidenav-action-btn">
-            <mat-icon>swap_horiz</mat-icon>
+
+        <mat-nav-list>
+          <a mat-list-item routerLink="/clipboard" routerLinkActive="active-link" (click)="closeSidenavOnMobile()">
+            <mat-icon matListItemIcon>content_paste</mat-icon>
+            <div matListItemTitle>Буфер обмена</div>
+          </a>
+          <a mat-list-item routerLink="/files" routerLinkActive="active-link" (click)="closeSidenavOnMobile()">
+            <mat-icon matListItemIcon>folder</mat-icon>
+            <div matListItemTitle>Файлы</div>
+          </a>
+          <a mat-list-item routerLink="/notes" routerLinkActive="active-link" (click)="closeSidenavOnMobile()">
+            <mat-icon matListItemIcon>edit_note</mat-icon>
+            <div matListItemTitle>Заметки</div>
+          </a>
+
+          @if (authService.userRole() === 'admin') {
+            <a mat-list-item routerLink="/admin" routerLinkActive="active-link" (click)="closeSidenavOnMobile()">
+              <mat-icon matListItemIcon>security</mat-icon>
+              <div matListItemTitle>Управление</div>
+            </a>
+          }
+        </mat-nav-list>
+      </mat-sidenav>
+
+      <mat-sidenav-content class="main-content">
+        <mat-toolbar class="top-toolbar">
+          @if (isMobile() || actualSidenavPosition() === 'start') {
+            <button mat-icon-button (click)="toggleSidenav()" class="menu-btn edge-left" [class.open]="isSidenavOpen() && !isMobile()">
+              <mat-icon>{{ isSidenavOpen() && !isMobile() ? 'menu_open' : 'menu' }}</mat-icon>
+            </button>
+          }
+
+          <span class="toolbar-title">{{ pageTitle() }}</span>
+          
+          <span class="spacer"></span>
+          
+          <button mat-icon-button (click)="themeService.toggle()">
+            <mat-icon>{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
           </button>
-        }
-      </div>
-
-      <mat-nav-list>
-        <a mat-list-item [class.active]="activeView === 'clipboard'" (click)="selectView('clipboard')">
-          <mat-icon matListItemIcon>content_paste</mat-icon>
-          <div matListItemTitle>Буфер обмена</div>
-        </a>
-        <a mat-list-item [class.active]="activeView === 'files'" (click)="selectView('files')">
-          <mat-icon matListItemIcon>folder</mat-icon>
-          <div matListItemTitle>Файлы</div>
-        </a>
-        <a mat-list-item [class.active]="activeView === 'notes'" (click)="selectView('notes')">
-          <mat-icon matListItemIcon>edit_note</mat-icon>
-          <div matListItemTitle>Заметки</div>
-        </a>
-      </mat-nav-list>
-    </mat-sidenav>
-
-    <mat-sidenav-content class="main-content">
-      <mat-toolbar class="top-toolbar">
-        
-        @if (isMobile() || actualSidenavPosition() === 'start') {
-          <button mat-icon-button (click)="toggleSidenav()" class="menu-btn edge-left" [class.open]="isSidenavOpen() && !isMobile()">
-            <mat-icon>{{ isSidenavOpen() && !isMobile() ? 'menu_open' : 'menu' }}</mat-icon>
+          <button mat-icon-button color="warn" (click)="authService.logout()" title="Выйти">
+            <mat-icon>logout</mat-icon>
           </button>
-        }
 
-        <span class="toolbar-title">{{ activeView === 'clipboard' ? 'Буфер обмена' : activeView === 'files' ? 'Хранилище файлов' : 'Мои Заметки' }}</span>
-        
-        <span class="spacer"></span>
-        
-        <button mat-icon-button (click)="themeService.toggle()">
-          <mat-icon>{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
-        </button>
-        <button mat-icon-button color="warn" (click)="authService.logout()" title="Выйти">
-          <mat-icon>logout</mat-icon>
-        </button>
+          @if (!isMobile() && actualSidenavPosition() === 'end') {
+            <button mat-icon-button (click)="toggleSidenav()" title="Свернуть меню" class="menu-btn edge-right flip-icon">
+              <mat-icon>{{ isSidenavOpen() ? 'menu_open' : 'menu' }}</mat-icon>
+            </button>
+          }
+        </mat-toolbar>
 
-        @if (!isMobile() && actualSidenavPosition() === 'end') {
-          <button mat-icon-button (click)="toggleSidenav()" title="Свернуть меню" class="menu-btn edge-right flip-icon">
-            <mat-icon>{{ isSidenavOpen() ? 'menu_open' : 'menu' }}</mat-icon>
-          </button>
-        }
-      </mat-toolbar>
-
-      <div class="view-container">
-        @if (activeView === 'clipboard') {
-          <div @pageAnimation>
-            <app-clipboard />
-          </div>
-        }
-        @if (activeView === 'files') {
-          <div @pageAnimation>
-            <app-files />
-          </div>
-        }
-        @if (activeView === 'notes') {
-          <div @pageAnimation>
-            <app-notes />
-          </div>
-        }
-      </div>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+        <div class="view-container">
+          <main [@pageAnimation]="pageTitle()">
+            <router-outlet></router-outlet>
+          </main>
+        </div>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+  }
 }

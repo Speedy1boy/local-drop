@@ -8,7 +8,7 @@
     "shared"
   ],
   "scripts": {
-    "build:shared": "tsc --workspace=shared",
+    "build:shared": "npm run build --workspace=shared",
     "db:up": "docker compose up db -d",
     "db:down": "docker compose stop db",
     "front": "npm run start --workspace=frontend",

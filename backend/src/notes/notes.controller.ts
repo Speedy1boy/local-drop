@@ -3,6 +3,7 @@ import { NotesService } from './notes.service.js';
 import { NotesGateway } from './notes.gateway.js';
 import { CreateNoteDto } from './dto/create-note.dto.js';
 import { AuthGuard } from '../auth/auth.guard.js';
+import { Throttle } from '@nestjs/throttler';
 
 @UseGuards(AuthGuard)
 @Controller('notes')
@@ -17,6 +18,7 @@ export class NotesController {
     return this.notesService.findAll();
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post()
   async create(@Body() dto: CreateNoteDto) {
     const note = await this.notesService.create(dto);
