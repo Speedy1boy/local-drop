@@ -1,12 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { AuthGateway } from './auth.gateway.js';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private authGateway: AuthGateway
   ) {}
 
   async createSession(ip: string, userAgent: string, role: 'guest' | 'admin') {
@@ -19,6 +21,8 @@ export class AuthService {
     const session = await this.prisma.deviceSession.create({
       data: { ip, userAgent, role, tokenVersion },
     });
+
+    this.authGateway.broadcastAdminUpdate('sessions');
 
     const token = this.jwtService.sign({ sessionId: session.id, role });
     return { token, role };

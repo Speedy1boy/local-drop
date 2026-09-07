@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Clipboard } from './clipboard';
+import { ClipboardComponent } from './clipboard';
 
 describe('Clipboard', () => {
-  let component: Clipboard;
-  let fixture: ComponentFixture<Clipboard>;
+  let component: ClipboardComponent;
+  let fixture: ComponentFixture<ClipboardComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Clipboard],
+      imports: [ClipboardComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Clipboard);
+    fixture = TestBed.createComponent(ClipboardComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

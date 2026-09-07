@@ -1,8 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class FilesService {
@@ -23,6 +22,26 @@ export class FilesService {
   }
 
   async saveMetadata(file: Express.Multer.File, folderId: string | null = null) {
+    const filePath = path.join(process.cwd(), 'uploads', file.filename);
+    
+    try {
+      const { fileTypeFromFile } = await import('file-type');
+      const meta = await fileTypeFromFile(filePath);
+      
+      if (meta) {
+        if (meta.mime === 'application/x-msdownload' && !file.originalname.endsWith('.exe')) {
+          await fs.unlink(filePath).catch(() => {});
+          throw new BadRequestException('Запрещенный тип файла');
+        }
+        if (meta.mime.startsWith('application/') && file.mimetype.startsWith('image/')) {
+          await fs.unlink(filePath).catch(() => {});
+          throw new BadRequestException('Подделка типа файла');
+        }
+      }
+    } catch (e) {
+      if (e instanceof BadRequestException) throw e;
+    }
+
     return this.prisma.fileItem.create({
       data: {
         originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
@@ -46,9 +65,7 @@ export class FilesService {
     try {
       await fs.access(filePath);
       await fs.unlink(filePath);
-    } catch (e) {
-      console.warn(`Файл ${filePath} не найден на диске, удаляем только из БД`);
-    }
+    } catch (e) {}
 
     return this.prisma.fileItem.delete({ where: { id } });
   }

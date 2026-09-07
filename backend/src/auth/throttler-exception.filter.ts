@@ -1,10 +1,13 @@
 import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common';
 import { ThrottlerException } from '@nestjs/throttler';
-import { Response, Request } from 'express';
+import { Request, Response } from 'express';
 import { SecurityService } from './security.service.js';
+import { RATE_LIMIT_MESSAGES } from '../rate-limits.config.js';
 
 @Catch(ThrottlerException)
 export class ThrottlerExceptionFilter implements ExceptionFilter {
+  private spamTracker = new Map<string, { count: number, timer: NodeJS.Timeout }>();
+
   constructor(private securityService: SecurityService) {}
 
   async catch(exception: ThrottlerException, host: ArgumentsHost) {
@@ -13,12 +16,29 @@ export class ThrottlerExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     
     const ip = (request.headers['x-forwarded-for'] as string) || request.socket.remoteAddress || 'unknown';
+    const userAgent = request.headers['user-agent'] || 'unknown';
 
-    await this.securityService.blockIpPermanently(ip, 'Спам запросами (Rate Limit Exceeded)');
+    const record = this.spamTracker.get(ip) || { 
+      count: 0, 
+      timer: setTimeout(() => this.spamTracker.delete(ip), 60000) 
+    };
+    
+    record.count++;
+    this.spamTracker.set(ip, record);
 
-    response.status(403).json({
-      statusCode: 403,
-      message: 'Вы были заблокированы навсегда за превышение лимитов запросов.',
-    });
+    if (record.count >= 3) {
+      await this.securityService.blockIpPermanently(ip, 'Спам-атака (DDOS)', userAgent);
+      clearTimeout(record.timer);
+      this.spamTracker.delete(ip);
+      return response.status(403).json({ message: 'Ваш IP-адрес заблокирован за спам.' });
+    }
+
+    let message = RATE_LIMIT_MESSAGES.DEFAULT;
+    if (request.url.includes('/auth/login')) message = RATE_LIMIT_MESSAGES.AUTH;
+    else if (request.url.includes('/files')) message = RATE_LIMIT_MESSAGES.FILES;
+    else if (request.url.includes('/notes')) message = RATE_LIMIT_MESSAGES.NOTES;
+    else if (request.url.includes('/clipboard')) message = RATE_LIMIT_MESSAGES.CLIPBOARD;
+
+    response.status(429).json({ message });
   }
 }

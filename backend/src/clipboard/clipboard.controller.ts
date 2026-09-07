@@ -4,6 +4,7 @@ import { ClipboardGateway } from './clipboard.gateway.js';
 import { CreateClipboardDto } from './dto/create-clipboard.dto.js';
 import { AuthGuard } from '../auth/auth.guard.js';
 import { Throttle } from '@nestjs/throttler';
+import { RATE_LIMITS } from '../rate-limits.config.js';
 
 @UseGuards(AuthGuard)
 @Controller('clipboard')
@@ -18,7 +19,7 @@ export class ClipboardController {
     return this.clipboardService.findAll();
   }
 
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle({ default: RATE_LIMITS.CLIPBOARD })
   @Post()
   async create(@Body() createDto: CreateClipboardDto) {
     const item = await this.clipboardService.create(createDto);

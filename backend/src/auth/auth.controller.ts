@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Req, Get } from '@nestjs/common';
+import { Controller, Post, Body, Req, Get, ServiceUnavailableException } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { AuthService } from './auth.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { SecurityService } from './security.service.js';
+import { RATE_LIMITS } from '../rate-limits.config.js';
 
 @Controller('auth')
 export class AuthController {
@@ -14,11 +15,14 @@ export class AuthController {
   ) {}
 
   @Get('ping')
-  ping() {
+  async ping(@Req() req: Request) {
+    const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    this.securityService.checkIp(ip);
+    await this.securityService.logVisit(ip);
     return { status: 'ok' };
   }
 
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle({ default: RATE_LIMITS.AUTH })
   @Post('login')
   async login(@Body('pin') input: string, @Req() req: Request) {
     const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
@@ -36,7 +40,10 @@ export class AuthController {
     
     if (input === process.env.ADMIN_PASSWORD) {
       role = 'admin';
-    } else if (input === currentPin && !isMaintenance) {
+    } else if (input === currentPin) {
+      if (isMaintenance) {
+        throw new ServiceUnavailableException('Сайт на обслуживании.');
+      }
       role = 'guest';
     }
 

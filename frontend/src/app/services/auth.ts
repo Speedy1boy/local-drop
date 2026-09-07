@@ -23,9 +23,26 @@ export class AuthService {
     this.decodeToken();
     this.socket = io(API_URL);
     
-    this.socket.on('forceLogout', (killedSessionId: string) => {
-      if (this.sessionId() === killedSessionId) {
-        this.logout();
+    this.socket.on('forceLogout', (data: any) => {
+      const sid = typeof data === 'string' ? data : data.sessionId;
+      const banned = typeof data === 'string' ? false : data.isBanned;
+      const reason = data.reason;
+      
+      if (this.sessionId() === sid) {
+        localStorage.removeItem('localdrop_token');
+        this.isAuthenticated.set(false);
+        this.userRole.set(null);
+        this.sessionId.set(null);
+        
+        if (banned) {
+          this.isBanned.set(true);
+          const suffix = (reason && reason !== 'Заблокирован администратором' && reason !== 'Brute force PIN') 
+            ? `. Причина: ${reason}` 
+            : '';
+          this.banMessage.set(`Ваш IP заблокирован администратором${suffix}`);
+        } else {
+          window.location.reload();
+        }
       }
     });
   }
@@ -51,6 +68,10 @@ export class AuthService {
         window.location.reload();
       },
       error: (err: HttpErrorResponse) => {
+        if (err.status === 503) {
+          this.loginError.set(err.error?.message || 'Сайт на обслуживании.');
+          return;
+        }
         if (err.status === 403) {
           this.isBanned.set(true);
           this.banMessage.set(err.error?.message || 'Ваш IP-адрес заблокирован.');

@@ -6,8 +6,8 @@ export class AuthGateway {
   @WebSocketServer()
   server: Server;
 
-  forceLogout(sessionId: string) {
-    this.server.emit('forceLogout', sessionId);
+  forceLogout(sessionId: string, isBanned: boolean = false, reason?: string) {
+    this.server.emit('forceLogout', { sessionId, isBanned, reason });
   }
 
   broadcastAdminUpdate(entity: 'sessions' | 'logs' | 'bans') {

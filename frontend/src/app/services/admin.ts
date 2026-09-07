@@ -33,8 +33,12 @@ export class AdminService {
     await firstValueFrom(this.http.delete(`${API_URL}/admin/sessions/${id}`));
   }
 
-  async banSession(id: string) {
-    await firstValueFrom(this.http.post(`${API_URL}/admin/ban-session/${id}`, {}));
+  async banSession(id: string, reason?: string) {
+    await firstValueFrom(this.http.post(`${API_URL}/admin/ban-session/${id}`, { reason }));
+  }
+
+  async banIp(ip: string, reason?: string) {
+    await firstValueFrom(this.http.post(`${API_URL}/admin/ban-ip`, { ip, reason }));
   }
 
   async loadLogs() {
@@ -61,5 +65,17 @@ export class AdminService {
 
   async toggleMaintenance(enabled: boolean) {
     return firstValueFrom(this.http.post<{success: boolean, maintenance: boolean}>(`${API_URL}/admin/toggle-maintenance`, { enabled }));
+  }
+
+  async cleanupDuplicates() {
+    return firstValueFrom(this.http.post<{deleted: number}>(`${API_URL}/admin/maintenance/duplicates`, {}));
+  }
+
+  async cleanupZombies() {
+    return firstValueFrom(this.http.post<{zombies: number, ghosts: number}>(`${API_URL}/admin/maintenance/zombies`, {}));
+  }
+
+  async cleanupClipboard() {
+    return firstValueFrom(this.http.post<{deleted: number}>(`${API_URL}/admin/maintenance/clipboard`, {}));
   }
 }

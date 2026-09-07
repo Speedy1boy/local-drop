@@ -1,6 +1,6 @@
 import { 
   Controller, Get, Post, Param, Delete, UseInterceptors, 
-  UploadedFile, Res, UseGuards, Query, Body 
+  UploadedFile, Res, UseGuards, Query, Body, Patch 
 } from '@nestjs/common';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -11,7 +11,7 @@ import { FilesService } from './files.service.js';
 import { FilesGateway } from './files.gateway.js';
 import { AuthGuard } from '../auth/auth.guard.js';
 import * as shared from '@local-drop/shared';
-import { Patch } from '@nestjs/common';
+import { RATE_LIMITS } from '../rate-limits.config.js';
 
 const storageConfig = diskStorage({
   destination: join(process.cwd(), 'uploads'),
@@ -51,10 +51,10 @@ export class FilesController {
     return this.filesService.getContents(folderId || null);
   }
 
-  @Throttle({ default: { limit: 5, ttl: 60000 } }) 
+  @Throttle({ default: RATE_LIMITS.FILES }) 
   @UseGuards(AuthGuard)
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file', { storage: storageConfig }))
+  @UseInterceptors(FileInterceptor('file', { storage: storageConfig, limits: { fileSize: 5 * 1024 * 1024 * 1024 } }))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body('folderId') folderId?: string

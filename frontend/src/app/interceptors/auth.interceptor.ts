@@ -3,9 +3,11 @@ import { inject } from '@angular/core';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { AuthService } from '../services/auth';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
+  const snackBar = inject(MatSnackBar);
   const token = localStorage.getItem('localdrop_token');
 
   let authReq = req;
@@ -23,6 +25,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
       if (error.status === 401 && !req.url.includes('login') && !req.url.includes('ping')) {
         authService.logout();
+      }
+
+      if (error.status === 429) {
+        snackBar.open(error.error?.message || 'Слишком много запросов. Подождите минуту.', 'ОК', {
+          duration: 5000
+        });
       }
 
       return throwError(() => error);
