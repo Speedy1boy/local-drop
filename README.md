@@ -82,4 +82,3 @@ npm run db:down
 | `npm run db:sync` | Синхронизация файлов из `backend/uploads` с базой данных |
 | `npm run docker:up` | Полный запуск проекта в Docker |
 | `npm run docker:down` | Остановка всех Docker-контейнеров |
-```
