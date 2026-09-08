@@ -19,10 +19,24 @@ export class AuthService {
   isBanned = signal<boolean>(false);
   banMessage = signal<string>('Доступ запрещен.');
 
+  isServerOnline = signal<boolean>(false);
+
   constructor() {
     this.decodeToken();
     this.socket = io(API_URL);
     
+    this.socket.on('connect', () => {
+      this.isServerOnline.set(true);
+    });
+
+    this.socket.on('disconnect', () => {
+      this.isServerOnline.set(false);
+    });
+
+    this.socket.on('connect_error', () => {
+      this.isServerOnline.set(false);
+    });
+
     this.socket.on('forceLogout', (data: any) => {
       const sid = typeof data === 'string' ? data : data.sessionId;
       const banned = typeof data === 'string' ? false : data.isBanned;
@@ -50,6 +64,7 @@ export class AuthService {
   async initApp(): Promise<void> {
     try {
       await firstValueFrom(this.http.get(`${API_URL}/auth/ping`));
+      this.isServerOnline.set(true);
     } catch (err: any) {
       if (err.status === 403) {
         this.isBanned.set(true);

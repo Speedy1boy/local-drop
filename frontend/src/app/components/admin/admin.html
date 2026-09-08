@@ -1,6 +1,20 @@
 <div class="admin-container">
   <div class="admin-header">
     <h1><mat-icon>security</mat-icon> Управление</h1>
+    
+    <div class="server-status">
+      @if (authService.isServerOnline()) {
+        <div class="status-badge online" title="Соединение с сервером установлено">
+          <span class="status-dot pulse"></span>
+          <span class="status-text">Онлайн</span>
+        </div>
+      } @else {
+        <div class="status-badge offline" title="Соединение с сервером потеряно">
+          <span class="status-dot"></span>
+          <span class="status-text">Офлайн</span>
+        </div>
+      }
+    </div>
   </div>
 
   <mat-tab-group class="custom-tabs" [selectedIndex]="activeTabIndex" (selectedIndexChange)="onTabChange($event)">
