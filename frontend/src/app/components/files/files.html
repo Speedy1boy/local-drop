@@ -34,7 +34,13 @@
       <p>или нажмите для выбора (можно использовать Ctrl+V)</p>
     } @else {
       <div class="staged-file-info" (click)="$event.stopPropagation()">
-        <mat-icon class="staged-icon">insert_drive_file</mat-icon>
+        @if (stagedPreviewUrl()) {
+          <div class="staged-preview-container">
+            <img [src]="stagedPreviewUrl()" class="staged-image-preview" alt="Превью загрузки">
+          </div>
+        } @else {
+          <mat-icon class="staged-icon">insert_drive_file</mat-icon>
+        }
         <h3 class="staged-name">{{ stagedFile()?.name }}</h3>
         <p class="staged-size">{{ formatBytes(stagedFile()?.size || 0) }}</p>
         <div class="staged-actions">

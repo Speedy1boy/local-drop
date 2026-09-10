@@ -49,6 +49,20 @@
       height: 48px;
       color: var(--mat-sys-primary);
     }
+    
+    .staged-preview-container {
+      width: 140px;
+      height: 140px;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--mat-sys-surface-container-high);
+      border: 1px solid var(--mat-sys-outline-variant);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      margin-bottom: 8px;
+    }
 
     .staged-name {
       margin: 0;
@@ -57,6 +71,12 @@
       word-break: break-all; 
       text-align: center;
       max-width: 90%;
+    }
+
+    .staged-image-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .staged-size {

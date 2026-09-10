@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, signal, computed, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, HostListener, inject, signal, computed, ViewChild, ElementRef, OnInit, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -71,6 +71,25 @@ export class FilesComponent implements OnInit {
 
   isBreadcrumbsScrolled = signal(false);
 
+  stagedPreviewUrl = signal<string | null>(null);
+
+  constructor() {
+    effect((onCleanup) => {
+      const file = this.stagedFile();
+      
+      if (file && file.type.startsWith('image/')) {
+        const url = URL.createObjectURL(file);
+        this.stagedPreviewUrl.set(url);
+        
+        onCleanup(() => {
+          URL.revokeObjectURL(url);
+        });
+      } else {
+        this.stagedPreviewUrl.set(null);
+      }
+    });
+  }
+  
   onBreadcrumbsScroll(event: Event) {
     const el = event.target as HTMLElement;
     this.isBreadcrumbsScrolled.set(el.scrollLeft > 5);
